@@ -61,9 +61,9 @@ func (h *Neo4jHandler) CreateOrUpdateRelationship(APILog *pb.APILog) error {
 
 	if h.EdgeLevel == "simple" {
 		query = `
-			MERGE (src:Pod {name: $srcNamem, namespace: $srcNamespace})
+			MERGE (src:Pod {name: $srcName, namespace: $srcNamespace})
 			ON CREATE SET src.name = $srcName
-			MERGE (dst:Pod {namespace: $dstNamespace, label: $dstLabel})
+			MERGE (dst:Pod {name: $dstName, namespace: $dstNamespace})
 			ON CREATE SET dst.name = $dstName
 			MERGE (src)-[r:CALLS {method: $method}]->(dst)
 			ON CREATE SET r.weight = 1
@@ -71,9 +71,9 @@ func (h *Neo4jHandler) CreateOrUpdateRelationship(APILog *pb.APILog) error {
 		`
 	} else {
 		query = `
-			MERGE (src:Pod {name: $srcNamem, namespace: $srcNamespace})
+			MERGE (src:Pod {name: $srcName, namespace: $srcNamespace})
 			ON CREATE SET src.name = $srcName
-			MERGE (dst:Pod {namespace: $dstNamespace, label: $dstLabel})
+			MERGE (dst:Pod {name: $dstName, namespace: $dstNamespace})
 			ON CREATE SET dst.name = $dstName
 			MERGE (src)-[r:CALLS {method: $method, path: $path}]->(dst)
 			ON CREATE SET r.weight = 1
