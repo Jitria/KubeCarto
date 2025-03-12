@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/5gsec/SentryFlow/protobuf"
+	"sentryflow/protobuf"
 )
 
 // == //

@@ -11,7 +11,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/json"
 
-	"github.com/5gsec/SentryFlow/types"
+	"sentryflow/types"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

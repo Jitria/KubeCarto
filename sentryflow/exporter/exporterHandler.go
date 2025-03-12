@@ -7,8 +7,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/5gsec/SentryFlow/config"
-	"github.com/5gsec/SentryFlow/protobuf"
+	"sentryflow/config"
+	"sentryflow/protobuf"
 
 	"log"
 

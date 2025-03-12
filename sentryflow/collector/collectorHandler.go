@@ -7,7 +7,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/5gsec/SentryFlow/config"
+	"sentryflow/config"
+
 	"google.golang.org/grpc"
 )
 

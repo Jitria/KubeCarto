@@ -9,11 +9,11 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/5gsec/SentryFlow/collector"
-	"github.com/5gsec/SentryFlow/config"
-	"github.com/5gsec/SentryFlow/exporter"
-	"github.com/5gsec/SentryFlow/k8s"
-	"github.com/5gsec/SentryFlow/processor"
+	"sentryflow/collector"
+	"sentryflow/config"
+	"sentryflow/exporter"
+	"sentryflow/k8s"
+	"sentryflow/processor"
 )
 
 // == //
@@ -61,20 +61,6 @@ func (sf *SentryFlowService) DestroySentryFlow() {
 		log.Print("[SentryFlow] Stopped Log Processors")
 	} else {
 		log.Print("[SentryFlow] Failed to stop Log Processors")
-	}
-
-	// Stop API Aanalyzer
-	if processor.StopAPIAnalyzer() {
-		log.Print("[SentryFlow] Stopped API Analyzer")
-	} else {
-		log.Print("[SentryFlow] Failed to stop API Analyzer")
-	}
-
-	// Stop API classifier
-	if processor.StopAPIClassifier() {
-		log.Print("[SentryFlow] Stopped API Classifier")
-	} else {
-		log.Print("[SentryFlow] Failed to stop API Classifier")
 	}
 
 	// Stop exporter
@@ -158,18 +144,6 @@ func SentryFlow() {
 
 	// Start log processor
 	if !processor.StartLogProcessor(sf.waitGroup) {
-		sf.DestroySentryFlow()
-		return
-	}
-
-	// Start API analyzer
-	if !processor.StartAPIAnalyzer(sf.waitGroup) {
-		sf.DestroySentryFlow()
-		return
-	}
-
-	// Start API classifier
-	if !processor.StartAPIClassifier(sf.waitGroup) {
 		sf.DestroySentryFlow()
 		return
 	}

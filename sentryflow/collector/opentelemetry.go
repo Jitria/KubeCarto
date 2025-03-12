@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/5gsec/SentryFlow/k8s"
-	"github.com/5gsec/SentryFlow/processor"
-	"github.com/5gsec/SentryFlow/protobuf"
-	"github.com/5gsec/SentryFlow/types"
+	"sentryflow/k8s"
+	"sentryflow/processor"
+	"sentryflow/protobuf"
+	"sentryflow/types"
+
 	otelLogs "go.opentelemetry.io/proto/otlp/collector/logs/v1"
 	"google.golang.org/grpc"
 )

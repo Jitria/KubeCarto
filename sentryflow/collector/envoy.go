@@ -7,10 +7,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/5gsec/SentryFlow/k8s"
-	"github.com/5gsec/SentryFlow/processor"
-	"github.com/5gsec/SentryFlow/protobuf"
-	"github.com/5gsec/SentryFlow/types"
+	"sentryflow/k8s"
+	"sentryflow/processor"
+	"sentryflow/protobuf"
+	"sentryflow/types"
 
 	envoyAccLogsData "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	envoyAccLogs "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"

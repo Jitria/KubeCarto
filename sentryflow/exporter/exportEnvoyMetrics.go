@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/5gsec/SentryFlow/protobuf"
+	"sentryflow/protobuf"
 )
 
 // == //

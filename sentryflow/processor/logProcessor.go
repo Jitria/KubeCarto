@@ -6,8 +6,8 @@ import (
 	"log"
 	"sync"
 
-	"github.com/5gsec/SentryFlow/exporter"
-	"github.com/5gsec/SentryFlow/protobuf"
+	"sentryflow/exporter"
+	"sentryflow/protobuf"
 )
 
 // == //
