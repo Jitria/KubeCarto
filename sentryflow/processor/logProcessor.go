@@ -81,7 +81,6 @@ func ProcessAPILogs(wg *sync.WaitGroup) {
 				log.Print("[LogProcessor] Failed to process an API log")
 			}
 
-			go AnalyzeAPI(logType.(*protobuf.APILog).Path)
 			go exporter.InsertAPILog(logType.(*protobuf.APILog))
 
 		case <-LogH.stopChan:

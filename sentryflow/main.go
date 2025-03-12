@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/5gsec/SentryFlow/core"
+	"sentryflow/core"
 )
 
 // ========== //

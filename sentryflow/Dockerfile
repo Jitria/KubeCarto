@@ -2,7 +2,7 @@
 
 ### Builder
 
-FROM golang:1.21-alpine3.17 as builder
+FROM golang:1.24-alpine3.21 as builder
 
 RUN apk --no-cache update
 RUN apk add --no-cache git clang llvm make gcc protobuf musl-dev
@@ -15,10 +15,10 @@ RUN mkdir /sentryflow
 RUN mkdir /protobuf
 
 WORKDIR /protobuf
-COPY /protobuf .
+COPY sentryflow/protobuf .
 
 WORKDIR /sentryflow
-COPY /sentryflow .
+COPY sentryflow/ .
 
 RUN export CGO_ENABLED=1; export CC=gcc;
 RUN go build -o sentryflow
