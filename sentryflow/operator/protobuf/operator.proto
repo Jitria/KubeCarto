@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "Operator/protobuf";
+
+message ClientInfo {
+  string hostName = 1;
+  string IPAddress = 2;
+}
+
+message APILog {
+  uint64 id = 1;
+  string timeStamp = 2;
+
+  string srcNamespace = 11;
+  string srcName = 12;
+  map<string, string> srcLabel = 13;
+
+  string srcType = 21;
+  string srcIP = 22;
+  string srcPort = 23;
+
+  string dstNamespace = 31;
+  string dstName = 32;
+  map<string, string> dstLabel = 33;
+
+  string dstType = 41;
+  string dstIP = 42;
+  string dstPort = 43;
+
+  string protocol = 51;
+  string method = 52;
+  string path = 53;
+  int32 responseCode = 54;
+}
+
+message MetricValue {
+  map<string, string> value = 1;
+}
+
+message EnvoyMetrics {
+  string timeStamp = 1;
+  
+  string namespace = 11;
+  string name = 12;
+  string IPAddress = 13;
+  map<string, string> labels = 14;
+
+  map<string, MetricValue> metrics = 21;
+}
+
+message Response {
+    int32 msg = 1;
+}
+
+service Operator {
+  rpc GetAPILog(ClientInfo) returns (stream APILog);
+  rpc GetEnvoyMetrics(ClientInfo) returns (stream EnvoyMetrics);
+
+  rpc GiveAPILog(stream APILog) returns (Response);
+  rpc GiveEnvoyMetrics(stream EnvoyMetrics) returns (Response);
+
+  // todo: give pod & svc info
+  // rpc GivePodInfo(??) returns ??;
+  // rpc GiveSvcInfo(??) returns ??;
+}
