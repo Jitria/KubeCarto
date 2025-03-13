@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protobuf;
 
-option go_package = "agent/protobuf";
+option go_package = "Agent/protobuf";
 
 message ClientInfo {
   string hostName = 1;
@@ -35,11 +35,6 @@ message APILog {
   int32 responseCode = 54;
 }
 
-message APIMetrics {
-  map<string, uint64> perAPICounts = 1;
-  // @todo: add some more metrics here
-}
-
 message MetricValue {
   map<string, string> value = 1;
 }
@@ -55,9 +50,18 @@ message EnvoyMetrics {
   map<string, MetricValue> metrics = 21;
 }
 
-service agent {
-  rpc GetAPILog(ClientInfo) returns (stream APILog);
-  rpc GetAPIMetrics(ClientInfo) returns (stream APIMetrics);
-  rpc GetEnvoyMetrics(ClientInfo) returns (stream EnvoyMetrics);
+message Response {
+    int32 msg = 1;
 }
 
+service Agent {
+  rpc GetAPILog(ClientInfo) returns (stream APILog);
+  rpc GetEnvoyMetrics(ClientInfo) returns (stream EnvoyMetrics);
+
+  rpc GiveAPILog(stream APILog) returns (Response);
+  rpc GiveEnvoyMetrics(stream EnvoyMetrics) returns (Response);
+
+  // todo: give pod & svc info
+  // rpc GivePodInfo(??) returns ??;
+  // rpc GiveSvcInfo(??) returns ??;
+}

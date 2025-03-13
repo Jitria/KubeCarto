@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-PROG_NAME = operator
+PROG_NAME = sentryflow-operator
 IMAGE_NAME = boanlab/$(PROG_NAME)
 TAG = v0.1
 

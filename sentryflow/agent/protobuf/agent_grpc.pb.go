@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Agent_GetAPILog_FullMethodName       = "/protobuf.agent/GetAPILog"
-	Agent_GetAPIMetrics_FullMethodName   = "/protobuf.agent/GetAPIMetrics"
-	Agent_GetEnvoyMetrics_FullMethodName = "/protobuf.agent/GetEnvoyMetrics"
+	Agent_GetAPILog_FullMethodName        = "/protobuf.Agent/GetAPILog"
+	Agent_GetEnvoyMetrics_FullMethodName  = "/protobuf.Agent/GetEnvoyMetrics"
+	Agent_GiveAPILog_FullMethodName       = "/protobuf.Agent/GiveAPILog"
+	Agent_GiveEnvoyMetrics_FullMethodName = "/protobuf.Agent/GiveEnvoyMetrics"
 )
 
 // AgentClient is the client API for Agent service.
@@ -29,8 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AgentClient interface {
 	GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error)
-	GetAPIMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APIMetrics], error)
 	GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error)
+	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
+	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
 }
 
 type agentClient struct {
@@ -60,28 +62,9 @@ func (c *agentClient) GetAPILog(ctx context.Context, in *ClientInfo, opts ...grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agent_GetAPILogClient = grpc.ServerStreamingClient[APILog]
 
-func (c *agentClient) GetAPIMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APIMetrics], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[1], Agent_GetAPIMetrics_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[ClientInfo, APIMetrics]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Agent_GetAPIMetricsClient = grpc.ServerStreamingClient[APIMetrics]
-
 func (c *agentClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[2], Agent_GetEnvoyMetrics_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[1], Agent_GetEnvoyMetrics_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +81,40 @@ func (c *agentClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agent_GetEnvoyMetricsClient = grpc.ServerStreamingClient[EnvoyMetrics]
 
+func (c *agentClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[2], Agent_GiveAPILog_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[APILog, Response]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Agent_GiveAPILogClient = grpc.ClientStreamingClient[APILog, Response]
+
+func (c *agentClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[3], Agent_GiveEnvoyMetrics_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[EnvoyMetrics, Response]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Agent_GiveEnvoyMetricsClient = grpc.ClientStreamingClient[EnvoyMetrics, Response]
+
 // AgentServer is the server API for Agent service.
 // All implementations should embed UnimplementedAgentServer
 // for forward compatibility.
 type AgentServer interface {
 	GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error
-	GetAPIMetrics(*ClientInfo, grpc.ServerStreamingServer[APIMetrics]) error
 	GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error
+	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
+	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
 }
 
 // UnimplementedAgentServer should be embedded to have
@@ -117,11 +127,14 @@ type UnimplementedAgentServer struct{}
 func (UnimplementedAgentServer) GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error {
 	return status.Errorf(codes.Unimplemented, "method GetAPILog not implemented")
 }
-func (UnimplementedAgentServer) GetAPIMetrics(*ClientInfo, grpc.ServerStreamingServer[APIMetrics]) error {
-	return status.Errorf(codes.Unimplemented, "method GetAPIMetrics not implemented")
-}
 func (UnimplementedAgentServer) GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error {
 	return status.Errorf(codes.Unimplemented, "method GetEnvoyMetrics not implemented")
+}
+func (UnimplementedAgentServer) GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error {
+	return status.Errorf(codes.Unimplemented, "method GiveAPILog not implemented")
+}
+func (UnimplementedAgentServer) GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error {
+	return status.Errorf(codes.Unimplemented, "method GiveEnvoyMetrics not implemented")
 }
 func (UnimplementedAgentServer) testEmbeddedByValue() {}
 
@@ -154,17 +167,6 @@ func _Agent_GetAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agent_GetAPILogServer = grpc.ServerStreamingServer[APILog]
 
-func _Agent_GetAPIMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ClientInfo)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AgentServer).GetAPIMetrics(m, &grpc.GenericServerStream[ClientInfo, APIMetrics]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Agent_GetAPIMetricsServer = grpc.ServerStreamingServer[APIMetrics]
-
 func _Agent_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
@@ -176,11 +178,25 @@ func _Agent_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) e
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Agent_GetEnvoyMetricsServer = grpc.ServerStreamingServer[EnvoyMetrics]
 
+func _Agent_GiveAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AgentServer).GiveAPILog(&grpc.GenericServerStream[APILog, Response]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Agent_GiveAPILogServer = grpc.ClientStreamingServer[APILog, Response]
+
+func _Agent_GiveEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AgentServer).GiveEnvoyMetrics(&grpc.GenericServerStream[EnvoyMetrics, Response]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Agent_GiveEnvoyMetricsServer = grpc.ClientStreamingServer[EnvoyMetrics, Response]
+
 // Agent_ServiceDesc is the grpc.ServiceDesc for Agent service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Agent_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protobuf.agent",
+	ServiceName: "protobuf.Agent",
 	HandlerType: (*AgentServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
@@ -190,14 +206,19 @@ var Agent_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "GetAPIMetrics",
-			Handler:       _Agent_GetAPIMetrics_Handler,
-			ServerStreams: true,
-		},
-		{
 			StreamName:    "GetEnvoyMetrics",
 			Handler:       _Agent_GetEnvoyMetrics_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "GiveAPILog",
+			Handler:       _Agent_GiveAPILog_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "GiveEnvoyMetrics",
+			Handler:       _Agent_GiveEnvoyMetrics_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "agent.proto",

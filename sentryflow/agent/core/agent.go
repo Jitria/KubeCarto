@@ -11,9 +11,9 @@ import (
 
 	"Agent/collector"
 	"Agent/config"
-	"Agent/exporter"
 	"Agent/k8s"
 	"Agent/processor"
+	"Agent/uploader"
 )
 
 // == //
@@ -63,11 +63,11 @@ func (sf *AgentService) DestroyAgent() {
 		log.Print("[Agent] Failed to stop Log Processors")
 	}
 
-	// Stop exporter
-	if exporter.StopExporter() {
-		log.Print("[Agent] Stopped Exporters")
+	// Stop uploader
+	if uploader.StopUploader() {
+		log.Print("[Agent] Stopped Uploader")
 	} else {
-		log.Print("[Agent] Failed to stop Exporters")
+		log.Print("[Agent] Failed to stop Uploader")
 	}
 
 	log.Print("[Agent] Waiting for routine terminations")
@@ -149,7 +149,7 @@ func Agent() {
 	}
 
 	// Start exporter
-	if !exporter.StartExporter(sf.waitGroup) {
+	if !uploader.StartUploader() {
 		sf.DestroyAgent()
 		return
 	}
