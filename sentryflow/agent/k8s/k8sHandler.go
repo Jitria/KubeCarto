@@ -307,7 +307,7 @@ func PatchNamespaces() bool {
 		namespace := ns.DeepCopy()
 
 		// Skip the following namespaces
-		if namespace.Name == "Agent" {
+		if namespace.Name == "sentryflow" {
 			continue
 		}
 
@@ -360,7 +360,7 @@ func RestartDeployments() bool {
 
 	for _, deployment := range deployments.Items {
 		// Skip the following namespaces
-		if deployment.Namespace == "Agent" {
+		if deployment.Namespace == "sentryflow" {
 			continue
 		}
 

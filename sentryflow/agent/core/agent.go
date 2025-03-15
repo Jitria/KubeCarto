@@ -149,7 +149,7 @@ func Agent() {
 	}
 
 	// Start exporter
-	if !uploader.StartUploader() {
+	if !uploader.StartUploader(sf.waitGroup) {
 		sf.DestroyAgent()
 		return
 	}

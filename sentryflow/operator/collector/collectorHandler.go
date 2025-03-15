@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type operatorServer struct {
+type ColService struct {
 	protobuf.UnimplementedOperatorServer
 }
 
@@ -27,8 +27,9 @@ var ColH *ColHandler
 
 // ColHandler Structure
 type ColHandler struct {
-	colService net.Listener
-	grpcServer *grpc.Server
+	colService  net.Listener
+	grpcServer  *grpc.Server
+	grpcService *ColService
 
 	stopChan chan struct{}
 
@@ -44,6 +45,8 @@ func init() {
 // NewColHandler Structure
 func NewColHandler() *ColHandler {
 	lh := &ColHandler{
+		grpcService: new(ColService),
+
 		stopChan: make(chan struct{}),
 
 		apiLogChan:  make(chan interface{}),
@@ -71,9 +74,10 @@ func StartCollector(wg *sync.WaitGroup) bool {
 	log.Printf("[Collector] Listening Collector gRPC services (%s)", collectorService)
 
 	// Create gRPC Service
-	ColH.grpcServer = grpc.NewServer()
+	gRPCServer := grpc.NewServer()
+	ColH.grpcServer = gRPCServer
 
-	protobuf.RegisterOperatorServer(ColH.grpcServer, &operatorServer{})
+	protobuf.RegisterOperatorServer(gRPCServer, ColH.grpcService)
 
 	// Serve gRPC Service
 	go ColH.grpcServer.Serve(ColH.colService)

@@ -18,7 +18,6 @@ type Feeder struct {
 	client            pb.SentryFlowClient
 	logStream         pb.SentryFlow_GetAPILogClient
 	envoyMetricStream pb.SentryFlow_GetEnvoyMetricsClient
-	apiMetricStream   pb.SentryFlow_GetAPIMetricsClient
 
 	Done chan struct{}
 }
@@ -74,15 +73,6 @@ func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg str
 		fd.logStream = logStream
 	}
 
-	if metricCfg != "none" && (metricFilter == "all" || metricFilter == "api") {
-		amStream, err := client.GetAPIMetrics(context.Background(), clientInfo)
-		if err != nil {
-			log.Fatalf("[Client] Could not get API metrics: %v", err)
-		}
-
-		fd.apiMetricStream = amStream
-	}
-
 	if metricCfg != "none" && (metricFilter == "all" || metricFilter == "envoy") {
 		emStream, err := client.GetEnvoyMetrics(context.Background(), clientInfo)
 		if err != nil {
@@ -114,32 +104,6 @@ func (fd *Feeder) APILogRoutine(logCfg string) {
 				fmt.Printf("%s", str)
 			} else {
 				StrToFile(str, logCfg)
-			}
-		case <-fd.Done:
-			return
-		}
-	}
-}
-
-// APIMetricsRoutine Function
-func (fd *Feeder) APIMetricsRoutine(metricCfg string) {
-	for fd.Running {
-		select {
-		default:
-			data, err := fd.apiMetricStream.Recv()
-			if err != nil {
-				log.Fatalf("[Client] Failed to receive API metrics: %v", err)
-				break
-			}
-
-			str := ""
-			str = str + "== API Metrics ==\n"
-			str = str + fmt.Sprintf("%v\n", data)
-
-			if metricCfg == "stdout" {
-				fmt.Printf("%s", str)
-			} else {
-				StrToFile(str, metricCfg)
 			}
 		case <-fd.Done:
 			return

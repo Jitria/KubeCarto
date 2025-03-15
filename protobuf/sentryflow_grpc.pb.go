@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.26.0
-// source: operator.proto
+// source: sentryflow.proto
 
 package protobuf
 
@@ -19,33 +19,33 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Operator_GetAPILog_FullMethodName        = "/protobuf.Operator/GetAPILog"
-	Operator_GetEnvoyMetrics_FullMethodName  = "/protobuf.Operator/GetEnvoyMetrics"
-	Operator_GiveAPILog_FullMethodName       = "/protobuf.Operator/GiveAPILog"
-	Operator_GiveEnvoyMetrics_FullMethodName = "/protobuf.Operator/GiveEnvoyMetrics"
+	SentryFlow_GetAPILog_FullMethodName        = "/protobuf.SentryFlow/GetAPILog"
+	SentryFlow_GetEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GetEnvoyMetrics"
+	SentryFlow_GiveAPILog_FullMethodName       = "/protobuf.SentryFlow/GiveAPILog"
+	SentryFlow_GiveEnvoyMetrics_FullMethodName = "/protobuf.SentryFlow/GiveEnvoyMetrics"
 )
 
-// OperatorClient is the client API for Operator service.
+// SentryFlowClient is the client API for SentryFlow service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type OperatorClient interface {
+type SentryFlowClient interface {
 	GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error)
 	GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error)
 	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
 	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
 }
 
-type operatorClient struct {
+type sentryFlowClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewOperatorClient(cc grpc.ClientConnInterface) OperatorClient {
-	return &operatorClient{cc}
+func NewSentryFlowClient(cc grpc.ClientConnInterface) SentryFlowClient {
+	return &sentryFlowClient{cc}
 }
 
-func (c *operatorClient) GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error) {
+func (c *sentryFlowClient) GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Operator_ServiceDesc.Streams[0], Operator_GetAPILog_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[0], SentryFlow_GetAPILog_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,11 +60,11 @@ func (c *operatorClient) GetAPILog(ctx context.Context, in *ClientInfo, opts ...
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GetAPILogClient = grpc.ServerStreamingClient[APILog]
+type SentryFlow_GetAPILogClient = grpc.ServerStreamingClient[APILog]
 
-func (c *operatorClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error) {
+func (c *sentryFlowClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Operator_ServiceDesc.Streams[1], Operator_GetEnvoyMetrics_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[1], SentryFlow_GetEnvoyMetrics_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,11 +79,11 @@ func (c *operatorClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, op
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GetEnvoyMetricsClient = grpc.ServerStreamingClient[EnvoyMetrics]
+type SentryFlow_GetEnvoyMetricsClient = grpc.ServerStreamingClient[EnvoyMetrics]
 
-func (c *operatorClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error) {
+func (c *sentryFlowClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Operator_ServiceDesc.Streams[2], Operator_GiveAPILog_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[2], SentryFlow_GiveAPILog_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,11 +92,11 @@ func (c *operatorClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GiveAPILogClient = grpc.ClientStreamingClient[APILog, Response]
+type SentryFlow_GiveAPILogClient = grpc.ClientStreamingClient[APILog, Response]
 
-func (c *operatorClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error) {
+func (c *sentryFlowClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Operator_ServiceDesc.Streams[3], Operator_GiveEnvoyMetrics_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[3], SentryFlow_GiveEnvoyMetrics_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,121 +105,121 @@ func (c *operatorClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.Call
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GiveEnvoyMetricsClient = grpc.ClientStreamingClient[EnvoyMetrics, Response]
+type SentryFlow_GiveEnvoyMetricsClient = grpc.ClientStreamingClient[EnvoyMetrics, Response]
 
-// OperatorServer is the server API for Operator service.
-// All implementations should embed UnimplementedOperatorServer
+// SentryFlowServer is the server API for SentryFlow service.
+// All implementations should embed UnimplementedSentryFlowServer
 // for forward compatibility.
-type OperatorServer interface {
+type SentryFlowServer interface {
 	GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error
 	GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error
 	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
 	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
 }
 
-// UnimplementedOperatorServer should be embedded to have
+// UnimplementedSentryFlowServer should be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedOperatorServer struct{}
+type UnimplementedSentryFlowServer struct{}
 
-func (UnimplementedOperatorServer) GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error {
+func (UnimplementedSentryFlowServer) GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error {
 	return status.Errorf(codes.Unimplemented, "method GetAPILog not implemented")
 }
-func (UnimplementedOperatorServer) GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error {
+func (UnimplementedSentryFlowServer) GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error {
 	return status.Errorf(codes.Unimplemented, "method GetEnvoyMetrics not implemented")
 }
-func (UnimplementedOperatorServer) GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error {
+func (UnimplementedSentryFlowServer) GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveAPILog not implemented")
 }
-func (UnimplementedOperatorServer) GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error {
+func (UnimplementedSentryFlowServer) GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveEnvoyMetrics not implemented")
 }
-func (UnimplementedOperatorServer) testEmbeddedByValue() {}
+func (UnimplementedSentryFlowServer) testEmbeddedByValue() {}
 
-// UnsafeOperatorServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to OperatorServer will
+// UnsafeSentryFlowServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SentryFlowServer will
 // result in compilation errors.
-type UnsafeOperatorServer interface {
-	mustEmbedUnimplementedOperatorServer()
+type UnsafeSentryFlowServer interface {
+	mustEmbedUnimplementedSentryFlowServer()
 }
 
-func RegisterOperatorServer(s grpc.ServiceRegistrar, srv OperatorServer) {
-	// If the following call pancis, it indicates UnimplementedOperatorServer was
+func RegisterSentryFlowServer(s grpc.ServiceRegistrar, srv SentryFlowServer) {
+	// If the following call pancis, it indicates UnimplementedSentryFlowServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Operator_ServiceDesc, srv)
+	s.RegisterService(&SentryFlow_ServiceDesc, srv)
 }
 
-func _Operator_GetAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _SentryFlow_GetAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(OperatorServer).GetAPILog(m, &grpc.GenericServerStream[ClientInfo, APILog]{ServerStream: stream})
+	return srv.(SentryFlowServer).GetAPILog(m, &grpc.GenericServerStream[ClientInfo, APILog]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GetAPILogServer = grpc.ServerStreamingServer[APILog]
+type SentryFlow_GetAPILogServer = grpc.ServerStreamingServer[APILog]
 
-func _Operator_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _SentryFlow_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(OperatorServer).GetEnvoyMetrics(m, &grpc.GenericServerStream[ClientInfo, EnvoyMetrics]{ServerStream: stream})
+	return srv.(SentryFlowServer).GetEnvoyMetrics(m, &grpc.GenericServerStream[ClientInfo, EnvoyMetrics]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GetEnvoyMetricsServer = grpc.ServerStreamingServer[EnvoyMetrics]
+type SentryFlow_GetEnvoyMetricsServer = grpc.ServerStreamingServer[EnvoyMetrics]
 
-func _Operator_GiveAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(OperatorServer).GiveAPILog(&grpc.GenericServerStream[APILog, Response]{ServerStream: stream})
+func _SentryFlow_GiveAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SentryFlowServer).GiveAPILog(&grpc.GenericServerStream[APILog, Response]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GiveAPILogServer = grpc.ClientStreamingServer[APILog, Response]
+type SentryFlow_GiveAPILogServer = grpc.ClientStreamingServer[APILog, Response]
 
-func _Operator_GiveEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(OperatorServer).GiveEnvoyMetrics(&grpc.GenericServerStream[EnvoyMetrics, Response]{ServerStream: stream})
+func _SentryFlow_GiveEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SentryFlowServer).GiveEnvoyMetrics(&grpc.GenericServerStream[EnvoyMetrics, Response]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Operator_GiveEnvoyMetricsServer = grpc.ClientStreamingServer[EnvoyMetrics, Response]
+type SentryFlow_GiveEnvoyMetricsServer = grpc.ClientStreamingServer[EnvoyMetrics, Response]
 
-// Operator_ServiceDesc is the grpc.ServiceDesc for Operator service.
+// SentryFlow_ServiceDesc is the grpc.ServiceDesc for SentryFlow service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Operator_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protobuf.Operator",
-	HandlerType: (*OperatorServer)(nil),
+var SentryFlow_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "protobuf.SentryFlow",
+	HandlerType: (*SentryFlowServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "GetAPILog",
-			Handler:       _Operator_GetAPILog_Handler,
+			Handler:       _SentryFlow_GetAPILog_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "GetEnvoyMetrics",
-			Handler:       _Operator_GetEnvoyMetrics_Handler,
+			Handler:       _SentryFlow_GetEnvoyMetrics_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "GiveAPILog",
-			Handler:       _Operator_GiveAPILog_Handler,
+			Handler:       _SentryFlow_GiveAPILog_Handler,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "GiveEnvoyMetrics",
-			Handler:       _Operator_GiveEnvoyMetrics_Handler,
+			Handler:       _SentryFlow_GiveEnvoyMetrics_Handler,
 			ClientStreams: true,
 		},
 	},
-	Metadata: "operator.proto",
+	Metadata: "sentryflow.proto",
 }

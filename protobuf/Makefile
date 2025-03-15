@@ -1,8 +1,8 @@
-PROTO:=operator.proto operator_metrics.proto
+PROTO:=sentryflow.proto sentryflow_metrics.proto
 PB_GO:=$(PROTO:.proto=.pb.go)
 
 .PHONY: build
-build: $(PB_GO)
+build: $(PB_GO) go.sum
 
 %.pb.go: %.proto
 ifeq (, $(shell which protoc))
@@ -17,6 +17,9 @@ endif
 	go mod tidy
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative,require_unimplemented_servers=false $<
 
+go.sum: go.mod
+	go get .
+
 .PHONY: clean
 clean:
-	rm -f *.pb.go
+	rm -f go.sum *.pb.go

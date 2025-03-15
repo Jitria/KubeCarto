@@ -54,7 +54,7 @@ spec:
         image: boanlab/sentryflow-mongo-client:v0.1
         env:
         - name: SERVER_ADDR
-          value: "sentryflow.sentryflow.svc.cluster.local"
+          value: "sentryflow-operator.sentryflow.svc.cluster.local"
         - name: SERVER_PORT
           value: "8080"
         - name: MONGODB_ADDR

@@ -56,8 +56,8 @@ func PatchIstioConfigMap() bool {
 	}
 
 	// set metrics and envoy access logging to Agent
-	meshCfg.DefaultConfig.EnvoyAccessLogService.Address = "Agent.Agent.svc.cluster.local:4317"
-	meshCfg.DefaultConfig.EnvoyMetricsService.Address = "Agent.Agent.svc.cluster.local:4317"
+	meshCfg.DefaultConfig.EnvoyAccessLogService.Address = "sentryflow-agent.sentryflow.svc.cluster.local:4317"
+	meshCfg.DefaultConfig.EnvoyMetricsService.Address = "sentryflow-agent.sentryflow.svc.cluster.local:4317"
 
 	// add Agent as Otel AL collector
 	if patched, _ := isEnvoyOtelAlPatched(meshCfg); !patched {
@@ -73,16 +73,16 @@ func PatchIstioConfigMap() bool {
 				Service string `yaml:"service"`
 			}{
 				Port:    "4317",
-				Service: "Agent.Agent.svc.cluster.local",
+				Service: "sentryflow-agent.sentryflow.svc.cluster.local",
 			},
-			Name: "Agent",
+			Name: "sentryflow-agent",
 		}
 		meshCfg.ExtensionProviders = append(meshCfg.ExtensionProviders, sfOtelAl)
 	}
 
 	// add default access log provider
 	if patched, _ := isEnvoyALProviderPatched(meshCfg); !patched {
-		meshCfg.DefaultProviders.AccessLogs = append(meshCfg.DefaultProviders.AccessLogs, "Agent")
+		meshCfg.DefaultProviders.AccessLogs = append(meshCfg.DefaultProviders.AccessLogs, "sentryflow-agent")
 	}
 
 	meshCfg.EnableEnvoyAccessLogService = true
@@ -203,9 +203,9 @@ func parseIstioConfigMap() (meshConfig, error) {
 // isEnvoyOtelAlPatched Function
 func isEnvoyOtelAlPatched(meshCfg meshConfig) (bool, int) {
 	for idx, envoyOtelAl := range meshCfg.ExtensionProviders {
-		if envoyOtelAl.Name == "Agent" &&
+		if envoyOtelAl.Name == "sentryflow-agent" &&
 			envoyOtelAl.EnvoyOtelAls.Port == "4317" &&
-			envoyOtelAl.EnvoyOtelAls.Service == "Agent.Agent.svc.cluster.local" {
+			envoyOtelAl.EnvoyOtelAls.Service == "sentryflow-agent.sentryflow.svc.cluster.local" {
 			return true, idx
 		}
 	}
@@ -216,7 +216,7 @@ func isEnvoyOtelAlPatched(meshCfg meshConfig) (bool, int) {
 // isEnvoyALProviderPatched Function
 func isEnvoyALProviderPatched(meshCfg meshConfig) (bool, int) {
 	for idx, accessLogProvider := range meshCfg.DefaultProviders.AccessLogs {
-		if accessLogProvider == "Agent" {
+		if accessLogProvider == "sentryflow-agent" {
 			return true, idx
 		}
 	}
@@ -225,8 +225,8 @@ func isEnvoyALProviderPatched(meshCfg meshConfig) (bool, int) {
 
 // isIstioAlreadyPatched Function
 func isIstioAlreadyPatched(meshCfg meshConfig) bool {
-	if meshCfg.DefaultConfig.EnvoyAccessLogService.Address != "Agent.Agent.svc.cluster.local:4317" ||
-		meshCfg.DefaultConfig.EnvoyMetricsService.Address != "Agent.Agent.svc.cluster.local:4317" {
+	if meshCfg.DefaultConfig.EnvoyAccessLogService.Address != "sentryflow-agent.sentryflow.svc.cluster.local:4317" ||
+		meshCfg.DefaultConfig.EnvoyMetricsService.Address != "sentryflow-agent.sentryflow.svc.cluster.local:4317" {
 		return false
 	}
 

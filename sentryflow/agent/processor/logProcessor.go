@@ -3,6 +3,7 @@
 package processor
 
 import (
+	"Agent/protobuf"
 	"log"
 	"sync"
 
@@ -80,9 +81,7 @@ func ProcessAPILogs(wg *sync.WaitGroup) {
 				log.Print("[LogProcessor] Failed to process an API log")
 			}
 
-			//@TODO: Implement the logic to Give the API log to operator
-
-			go uploader.InsertAPILog(logType)
+			go uploader.UploadAPILog(logType.(*protobuf.APILog))
 
 		case <-LogH.stopChan:
 			wg.Done()
@@ -107,9 +106,7 @@ func ProcessEnvoyMetrics(wg *sync.WaitGroup) {
 				log.Print("[LogProcessor] Failed to process Envoy metrics")
 			}
 
-			//@TODO: Implement the logic to Give the Envoy metrics to operator
-
-			go uploader.InsertEnvoyMetrics(logType)
+			go uploader.UploadEnvoyMetrics(logType.(*protobuf.EnvoyMetrics))
 
 		case <-LogH.stopChan:
 			wg.Done()

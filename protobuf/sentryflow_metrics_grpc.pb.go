@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.26.0
-// source: operator_metrics.proto
+// source: sentryflow_metrics.proto
 
 package protobuf
 
@@ -109,5 +109,5 @@ var APIClassifier_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "operator_metrics.proto",
+	Metadata: "sentryflow_metrics.proto",
 }

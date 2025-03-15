@@ -15,10 +15,10 @@ RUN mkdir /operator
 RUN mkdir /protobuf
 
 WORKDIR /protobuf
-COPY operator/protobuf .
+COPY protobuf/ .
 
 WORKDIR /operator
-COPY operator/ .
+COPY sentryflow/operator/ .
 
 RUN export CGO_ENABLED=1; export CC=gcc;
 RUN go build -o operator

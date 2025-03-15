@@ -16,8 +16,8 @@ type AgentConfig struct {
 	CollectorAddr string // Address for Collector gRPC
 	CollectorPort string // Port for Collector gRPC
 
-	ExporterAddr string // IP address to use for exporter gRPC
-	ExporterPort string // Port to use for exporter gRPC
+	OperatorAddr string // IP address to use for Operator gRPC
+	OperatorPort string // Port to use for Operator gRPC
 
 	PatchingNamespaces           bool // Enable/Disable patching namespaces with 'istio-injection'
 	RestartingPatchedDeployments bool // Enable/Disable restarting deployments after patching
@@ -41,8 +41,8 @@ const (
 	CollectorAddr string = "collectorAddr"
 	CollectorPort string = "collectorPort"
 
-	ExporterAddr string = "exporterAddr"
-	ExporterPort string = "exporterPort"
+	OperatorAddr string = "operatorAddr"
+	OperatorPort string = "operatorPort"
 
 	PatchingNamespaces           string = "patchingNamespaces"
 	RestartingPatchedDeployments string = "restartingPatchedDeployments"
@@ -57,8 +57,8 @@ func readCmdLineParams() {
 	collectorAddrStr := flag.String(CollectorAddr, "0.0.0.0", "Address for Collector gRPC")
 	collectorPortStr := flag.String(CollectorPort, "4317", "Port for Collector gRPC")
 
-	exporterAddrStr := flag.String(ExporterAddr, "0.0.0.0", "Address for Exporter gRPC")
-	exporterPortStr := flag.String(ExporterPort, "8080", "Port for Exporter gRPC")
+	operatorAddrStr := flag.String(OperatorAddr, "0.0.0.0", "Address for Operator gRPC")
+	operatorPortStr := flag.String(OperatorPort, "5317", "Port for Operator gRPC")
 
 	patchingNamespacesB := flag.Bool(PatchingNamespaces, false, "Enable patching 'istio-injection' to all namespaces")
 	restartingPatchedDeploymentsB := flag.Bool(RestartingPatchedDeployments, false, "Enable restarting the deployments in all patched namespaces")
@@ -80,8 +80,8 @@ func readCmdLineParams() {
 	viper.SetDefault(CollectorAddr, *collectorAddrStr)
 	viper.SetDefault(CollectorPort, *collectorPortStr)
 
-	viper.SetDefault(ExporterAddr, *exporterAddrStr)
-	viper.SetDefault(ExporterPort, *exporterPortStr)
+	viper.SetDefault(OperatorAddr, *operatorAddrStr)
+	viper.SetDefault(OperatorPort, *operatorPortStr)
 
 	viper.SetDefault(PatchingNamespaces, *patchingNamespacesB)
 	viper.SetDefault(RestartingPatchedDeployments, *restartingPatchedDeploymentsB)
@@ -103,8 +103,8 @@ func LoadConfig() error {
 	GlobalConfig.CollectorAddr = viper.GetString(CollectorAddr)
 	GlobalConfig.CollectorPort = viper.GetString(CollectorPort)
 
-	GlobalConfig.ExporterAddr = viper.GetString(ExporterAddr)
-	GlobalConfig.ExporterPort = viper.GetString(ExporterPort)
+	GlobalConfig.OperatorAddr = viper.GetString(OperatorAddr)
+	GlobalConfig.OperatorPort = viper.GetString(OperatorPort)
 
 	GlobalConfig.PatchingNamespaces = viper.GetBool(PatchingNamespaces)
 	GlobalConfig.RestartingPatchedDeployments = viper.GetBool(RestartingPatchedDeployments)
