@@ -17,13 +17,13 @@ type envoyMetricsStreamInform struct {
 	Hostname  string
 	IPAddress string
 
-	metricsStream protobuf.Operator_GetEnvoyMetricsServer
+	metricsStream protobuf.SentryFlow_GetEnvoyMetricsServer
 
 	error chan error
 }
 
 // GetEnvoyMetrics Function (for gRPC)
-func (exs *ExpService) GetEnvoyMetrics(info *protobuf.ClientInfo, stream protobuf.Operator_GetEnvoyMetricsServer) error {
+func (exs *ExpService) GetEnvoyMetrics(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetEnvoyMetricsServer) error {
 	log.Printf("[Exporter] Client %s (%s) connected (GetEnvoyMetrics)", info.HostName, info.IPAddress)
 
 	currExporter := &envoyMetricsStreamInform{

@@ -18,13 +18,13 @@ type apiLogStreamInform struct {
 	Hostname  string
 	IPAddress string
 
-	stream protobuf.Operator_GetAPILogServer
+	stream protobuf.SentryFlow_GetAPILogServer
 
 	error chan error
 }
 
 // GetAPILog Function (for gRPC)
-func (exs *ExpService) GetAPILog(info *protobuf.ClientInfo, stream protobuf.Operator_GetAPILogServer) error {
+func (exs *ExpService) GetAPILog(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetAPILogServer) error {
 	log.Printf("[Exporter] Client %s (%s) connected (GetAPILog)", info.HostName, info.IPAddress)
 
 	currExporter := &apiLogStreamInform{

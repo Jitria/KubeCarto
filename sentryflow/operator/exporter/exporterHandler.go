@@ -47,7 +47,7 @@ type ExpHandler struct {
 
 // ExpService Structure
 type ExpService struct {
-	protobuf.UnimplementedOperatorServer
+	protobuf.UnimplementedSentryFlowServer
 }
 
 // == //
@@ -94,7 +94,7 @@ func StartExporter(wg *sync.WaitGroup) bool {
 	gRPCServer := grpc.NewServer()
 	ExpH.grpcServer = gRPCServer
 
-	protobuf.RegisterOperatorServer(gRPCServer, ExpH.grpcService)
+	protobuf.RegisterSentryFlowServer(gRPCServer, ExpH.grpcService)
 
 	log.Printf("[Exporter] Initialized Exporter gRPC services")
 

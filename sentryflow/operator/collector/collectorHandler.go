@@ -18,7 +18,7 @@ import (
 )
 
 type ColService struct {
-	protobuf.UnimplementedOperatorServer
+	protobuf.UnimplementedSentryFlowServer
 }
 
 // == //
@@ -78,7 +78,7 @@ func StartCollector(wg *sync.WaitGroup) bool {
 	gRPCServer := grpc.NewServer()
 	ColH.grpcServer = gRPCServer
 
-	protobuf.RegisterOperatorServer(gRPCServer, ColH.grpcService)
+	protobuf.RegisterSentryFlowServer(gRPCServer, ColH.grpcService)
 
 	// Serve gRPC Service
 	go ColH.grpcServer.Serve(ColH.colService)

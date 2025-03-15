@@ -10,11 +10,11 @@ import (
 )
 
 // 먼저 gRPC 서버 생성 후 서비스 등록 시에
-// protobuf.RegisterOperatorServer(gRPCServer, ColH)
+// protobuf.RegisterSentryFlowServer(gRPCServer, ColH)
 // 를 호출하여 ColHandler가 해당 RPC를 처리하도록 등록합니다.
 
 // GiveAPILog implements the server-side streaming RPC for APILog.
-func (ch *ColHandler) GiveAPILog(stream protobuf.Operator_GiveAPILogServer) error {
+func (ch *ColHandler) GiveAPILog(stream protobuf.SentryFlow_GiveAPILogServer) error {
 	for {
 		// Receive APILog from stream.
 		apiLog, err := stream.Recv()
@@ -31,7 +31,7 @@ func (ch *ColHandler) GiveAPILog(stream protobuf.Operator_GiveAPILogServer) erro
 }
 
 // GiveEnvoyMetrics implements the server-side streaming RPC for EnvoyMetrics.
-func (ch *ColHandler) GiveEnvoyMetrics(stream protobuf.Operator_GiveEnvoyMetricsServer) error {
+func (ch *ColHandler) GiveEnvoyMetrics(stream protobuf.SentryFlow_GiveEnvoyMetricsServer) error {
 	for {
 		// Receive EnvoyMetrics from stream.
 		envoyMetrics, err := stream.Recv()
