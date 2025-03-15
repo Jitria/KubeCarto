@@ -8,7 +8,7 @@ import (
 	"log"
 	"sort"
 
-	"Operator/protobuf"
+	"github.com/Jitria/SentryFlow/protobuf"
 )
 
 // == //

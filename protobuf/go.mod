@@ -1,4 +1,4 @@
-module SentryFlow
+module github.com/Jitria/SentryFlow/protobuf
 
 go 1.24.1
 

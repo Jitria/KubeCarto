@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"Operator/protobuf"
+	"github.com/Jitria/SentryFlow/protobuf"
 )
 
 // == //

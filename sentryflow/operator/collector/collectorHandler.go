@@ -4,7 +4,8 @@ package collector
 
 import (
 	"Operator/exporter"
-	"Operator/protobuf"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	"fmt"
 	"log"

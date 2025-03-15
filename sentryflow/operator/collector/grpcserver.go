@@ -3,9 +3,10 @@
 package collector
 
 import (
-	"Operator/protobuf"
 	"fmt"
 	"io"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 )
 
 // 먼저 gRPC 서버 생성 후 서비스 등록 시에

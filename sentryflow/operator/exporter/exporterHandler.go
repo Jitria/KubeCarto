@@ -8,7 +8,8 @@ import (
 	"sync"
 
 	"Operator/config"
-	"Operator/protobuf"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	"log"
 
