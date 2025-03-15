@@ -15,10 +15,10 @@ RUN mkdir /agent
 RUN mkdir /protobuf
 
 WORKDIR /protobuf
-COPY agent/protobuf .
+COPY protobuf/ .
 
 WORKDIR /agent
-COPY agent/ .
+COPY sentryflow/agent/ .
 
 RUN export CGO_ENABLED=1; export CC=gcc;
 RUN go build -o agent

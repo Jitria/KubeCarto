@@ -1,12 +1,13 @@
 package uploader
 
 import (
-	"Agent/protobuf"
 	"context"
 	"fmt"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 )
 
 // UploadAPILog Function

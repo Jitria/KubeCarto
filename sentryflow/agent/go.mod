@@ -3,11 +3,11 @@ module Agent
 go 1.24.1
 
 require (
+	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250315063503-0e17a96d491a
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4
 	github.com/spf13/viper v1.19.0
 	go.opentelemetry.io/proto/otlp v1.5.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
@@ -64,6 +64,7 @@ require (
 	golang.org/x/time v0.7.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

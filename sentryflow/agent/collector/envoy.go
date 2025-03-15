@@ -9,8 +9,9 @@ import (
 
 	"Agent/k8s"
 	"Agent/processor"
-	"Agent/protobuf"
 	"Agent/types"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	envoyAccLogsData "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	envoyAccLogs "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"

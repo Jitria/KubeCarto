@@ -1,3 +1,5 @@
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250315063503-0e17a96d491a h1:Qolg33kVszSdJ9+5aDhBLdfWqFkNanYz09DjdT5n3dc=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250315063503-0e17a96d491a/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3 h1:boJj011Hh+874zpIySeApCX4GeOjPl9qhRF3QuIZq+Q=
 github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=

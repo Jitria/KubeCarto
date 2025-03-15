@@ -8,7 +8,8 @@ import (
 	"sync"
 
 	"Agent/config"
-	"Agent/protobuf"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -26,7 +27,7 @@ func init() {
 
 // UplHandler Structure
 type UplHandler struct {
-	grpcClient protobuf.AgentClient
+	grpcClient protobuf.SentryFlowClient
 
 	uploaderAPILogs      chan *protobuf.APILog
 	uploaderEnovyMetrics chan *protobuf.EnvoyMetrics
@@ -67,7 +68,7 @@ func StartUploader(wg *sync.WaitGroup) bool {
 	return true
 }
 
-func connectToOperator() (protobuf.AgentClient, error) {
+func connectToOperator() (protobuf.SentryFlowClient, error) {
 	operatorAddr := fmt.Sprintf("%s:%s", config.GlobalConfig.OperatorAddr, config.GlobalConfig.OperatorPort)
 
 	conn, err := grpc.NewClient(operatorAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -76,7 +77,7 @@ func connectToOperator() (protobuf.AgentClient, error) {
 		return nil, nil
 	}
 
-	client := protobuf.NewAgentClient(conn)
+	client := protobuf.NewSentryFlowClient(conn)
 
 	return client, nil
 }

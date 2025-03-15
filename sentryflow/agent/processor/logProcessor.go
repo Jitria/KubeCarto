@@ -3,9 +3,10 @@
 package processor
 
 import (
-	"Agent/protobuf"
 	"log"
 	"sync"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	"Agent/uploader"
 )

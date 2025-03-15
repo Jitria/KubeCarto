@@ -9,8 +9,9 @@ import (
 
 	"Agent/k8s"
 	"Agent/processor"
-	"Agent/protobuf"
 	"Agent/types"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	otelLogs "go.opentelemetry.io/proto/otlp/collector/logs/v1"
 	"google.golang.org/grpc"
