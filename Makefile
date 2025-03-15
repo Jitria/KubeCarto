@@ -13,22 +13,34 @@ MONGO_CLIENT_IMAGE_NAME = $(PREFIX)/$(MONGO_CLIENT_NAME)
 TAG = v0.1
 
 .PHONY: create-sentryflow
-apply: 
+create-sentryflow: 
 	kubectl apply -f ./deployments/sentryflow.yaml
 	sleep 1
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
 	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
 
-# client build image랑 밑에 것 해두기
 .PHONY: create-client
 create-client:
-	kubectl apply -f ./deployments/client.yaml
+	kubectl apply -f ./deployments/log-client.yaml
+	kubectl apply -f ./deployments/mongo-client.yaml
 	
+.PHONY: create-example
+create-example:
+	kubectl apply -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
 
 .PHONY: delete-sentryflow
 delete:
 	kubectl delete all --all -n sentryflow
 	kubectl delete namespace sentryflow
+
+.PHONY: delete-client
+delete-client:
+	kubectl delete -f ./deployments/log-client.yaml
+	kubectl delete -f ./deployments/mongo-client.yaml
+
+.PHONY: delete-example
+delete-example:
+	kubectl delete -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
 
 .PHONY: build-image
 build-image:
