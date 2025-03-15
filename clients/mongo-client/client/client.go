@@ -3,10 +3,11 @@
 package client
 
 import (
-	pb "SentryFlow/protobuf"
 	"context"
 	"log"
 	"mongo-client/mongodb"
+
+	pb "github.com/Jitria/SentryFlow/protobuf"
 )
 
 // Feeder Structure
@@ -16,7 +17,6 @@ type Feeder struct {
 	client            pb.SentryFlowClient
 	logStream         pb.SentryFlow_GetAPILogClient
 	envoyMetricStream pb.SentryFlow_GetEnvoyMetricsClient
-	apiMetricStream   pb.SentryFlow_GetAPIMetricsClient
 
 	dbHandler mongodb.DBHandler
 
@@ -39,15 +39,6 @@ func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg str
 		}
 
 		fd.logStream = logStream
-	}
-
-	if metricCfg != "none" && (metricFilter == "all" || metricFilter == "api") {
-		amStream, err := client.GetAPIMetrics(context.Background(), clientInfo)
-		if err != nil {
-			log.Fatalf("[Client] Could not get API metrics: %v", err)
-		}
-
-		fd.apiMetricStream = amStream
 	}
 
 	if metricCfg != "none" && (metricFilter == "all" || metricFilter == "envoy") {
@@ -82,26 +73,6 @@ func (fd *Feeder) APILogRoutine(logCfg string) {
 			err = fd.dbHandler.InsertAPILog(data)
 			if err != nil {
 				log.Fatalf("[MongoDB] Failed to insert an API log: %v", err)
-			}
-		case <-fd.Done:
-			return
-		}
-	}
-}
-
-// APIMetricsRoutine Function
-func (fd *Feeder) APIMetricsRoutine(metricCfg string) {
-	for fd.Running {
-		select {
-		default:
-			data, err := fd.apiMetricStream.Recv()
-			if err != nil {
-				log.Fatalf("[Client] Failed to receive API metrics: %v", err)
-				break
-			}
-			err = fd.dbHandler.InsertAPIMetrics(data)
-			if err != nil {
-				log.Fatalf("[MongoDB] Failed to insert API metrics: %v", err)
 			}
 		case <-fd.Done:
 			return

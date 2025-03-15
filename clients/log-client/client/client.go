@@ -3,12 +3,13 @@
 package client
 
 import (
-	pb "SentryFlow/protobuf"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+
+	pb "github.com/Jitria/SentryFlow/protobuf"
 )
 
 // Feeder Structure

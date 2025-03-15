@@ -3,12 +3,13 @@
 package mongodb
 
 import (
-	protobuf "SentryFlow/protobuf"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"time"
+
+	protobuf "github.com/Jitria/SentryFlow/protobuf"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -72,16 +73,6 @@ func (handler *DBHandler) Disconnect() {
 // InsertAPILog Function
 func (handler *DBHandler) InsertAPILog(data *protobuf.APILog) error {
 	_, err := handler.apiLogCol.InsertOne(context.Background(), data)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// InsertAPIMetrics Function
-func (handler *DBHandler) InsertAPIMetrics(data *protobuf.APIMetrics) error {
-	_, err := handler.apiMetricsCol.InsertOne(context.Background(), data)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@
 package main
 
 import (
-	protobuf "SentryFlow/protobuf"
+	protobuf "github.com/Jitria/SentryFlow/protobuf"
 
 	"flag"
 	"fmt"
@@ -91,11 +91,6 @@ func main() {
 	}
 
 	if *metricCfgPtr != "none" {
-		if *metricFilterPtr == "all" || *metricFilterPtr == "api" {
-			go logClient.APIMetricsRoutine(*metricCfgPtr)
-			fmt.Printf("[Metric] Started to watch API metrics\n")
-		}
-
 		if *metricFilterPtr == "all" || *metricFilterPtr == "envoy" {
 			go logClient.EnvoyMetricsRoutine(*metricCfgPtr)
 			fmt.Printf("[Metric] Started to watch Envoy metrics\n")

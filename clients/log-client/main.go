@@ -3,7 +3,6 @@
 package main
 
 import (
-	"SentryFlow/protobuf"
 	"flag"
 	"fmt"
 	"log"
@@ -12,6 +11,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Jitria/SentryFlow/protobuf"
 
 	"google.golang.org/grpc"
 )
@@ -86,11 +87,6 @@ func main() {
 	}
 
 	if *metricCfgPtr != "none" {
-		if *metricFilterPtr == "all" || *metricFilterPtr == "api" {
-			go logClient.APIMetricsRoutine(*metricCfgPtr)
-			fmt.Printf("[Metric] Started to watch API Metrics\n")
-		}
-
 		if *metricFilterPtr == "all" || *metricFilterPtr == "envoy" {
 			go logClient.EnvoyMetricsRoutine(*metricCfgPtr)
 			fmt.Printf("[Metric] Started to watch Envoy Metrics\n")

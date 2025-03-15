@@ -2,7 +2,7 @@
 
 ### Builder
 
-FROM golang:1.21-alpine3.17 as builder
+FROM golang:1.24-alpine3.21 as builder
 
 RUN apk --no-cache update
 RUN apk add --no-cache git clang llvm make gcc protobuf musl-dev
@@ -11,10 +11,10 @@ RUN mkdir /client
 RUN mkdir /protobuf
 
 WORKDIR /protobuf
-COPY /protobuf .
+COPY protobuf/ .
 
 WORKDIR /client
-COPY /clients/log-client .
+COPY clients/log-client .
 
 RUN go build -o log-client
 
