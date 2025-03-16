@@ -30,7 +30,7 @@ func (upl *UplHandler) uploadEnvoyMetrics(wg *sync.WaitGroup) {
 				return
 			}
 
-			if err := upl.SendEnvoyMetrics(evyMetrics); err != nil {
+			if err := upl.sendEnvoyMetrics(evyMetrics); err != nil {
 				log.Printf("[Uploader] Failed to upload Envoy metrics: %v", err)
 			}
 
@@ -42,7 +42,7 @@ func (upl *UplHandler) uploadEnvoyMetrics(wg *sync.WaitGroup) {
 }
 
 // SendEnvoyMetrics Function
-func (upl *UplHandler) SendEnvoyMetrics(metrics *protobuf.EnvoyMetrics) error {
+func (upl *UplHandler) sendEnvoyMetrics(metrics *protobuf.EnvoyMetrics) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	stream, err := upl.grpcClient.GiveEnvoyMetrics(ctx)

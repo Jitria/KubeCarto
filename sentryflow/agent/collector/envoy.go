@@ -124,6 +124,7 @@ func (evyAccLogs *EnvoyAccessLogsServer) StreamAccessLogs(stream envoyAccLogs.Ac
 		if event.GetHttpLogs() != nil {
 			for _, entry := range event.GetHttpLogs().LogEntry {
 				envoyAPILog := generateAPILogsFromEnvoy(entry)
+				log.Printf("[EnvoyAPILogs] %v", envoyAPILog)
 				processor.InsertAPILog(envoyAPILog)
 			}
 		}

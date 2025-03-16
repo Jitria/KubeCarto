@@ -57,7 +57,7 @@ func readCmdLineParams() {
 	collectorAddrStr := flag.String(CollectorAddr, "0.0.0.0", "Address for Collector gRPC")
 	collectorPortStr := flag.String(CollectorPort, "4317", "Port for Collector gRPC")
 
-	operatorAddrStr := flag.String(OperatorAddr, "0.0.0.0", "Address for Operator gRPC")
+	operatorAddrStr := flag.String(OperatorAddr, "sentryflow-operator.sentryflow.svc.cluster.local", "Address for Operator gRPC")
 	operatorPortStr := flag.String(OperatorPort, "5317", "Port for Operator gRPC")
 
 	patchingNamespacesB := flag.Bool(PatchingNamespaces, false, "Enable patching 'istio-injection' to all namespaces")

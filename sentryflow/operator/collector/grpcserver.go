@@ -14,7 +14,7 @@ import (
 // 를 호출하여 ColHandler가 해당 RPC를 처리하도록 등록합니다.
 
 // GiveAPILog implements the server-side streaming RPC for APILog.
-func (ch *ColHandler) GiveAPILog(stream protobuf.SentryFlow_GiveAPILogServer) error {
+func (cs *ColService) GiveAPILog(stream protobuf.SentryFlow_GiveAPILogServer) error {
 	for {
 		// Receive APILog from stream.
 		apiLog, err := stream.Recv()
@@ -26,12 +26,12 @@ func (ch *ColHandler) GiveAPILog(stream protobuf.SentryFlow_GiveAPILogServer) er
 			return fmt.Errorf("GiveAPILog recv error: %v", err)
 		}
 		// 채널에 넣어 비동기로 처리 (ProcessAPILogs에서 처리)
-		ch.apiLogChan <- apiLog
+		ColH.apiLogChan <- apiLog
 	}
 }
 
 // GiveEnvoyMetrics implements the server-side streaming RPC for EnvoyMetrics.
-func (ch *ColHandler) GiveEnvoyMetrics(stream protobuf.SentryFlow_GiveEnvoyMetricsServer) error {
+func (cs *ColService) GiveEnvoyMetrics(stream protobuf.SentryFlow_GiveEnvoyMetricsServer) error {
 	for {
 		// Receive EnvoyMetrics from stream.
 		envoyMetrics, err := stream.Recv()
@@ -43,6 +43,6 @@ func (ch *ColHandler) GiveEnvoyMetrics(stream protobuf.SentryFlow_GiveEnvoyMetri
 			return fmt.Errorf("GiveEnvoyMetrics recv error: %v", err)
 		}
 		// metricsChan으로 보내 ProcessEnvoyMetrics에서 처리하도록 함
-		ch.metricsChan <- envoyMetrics
+		ColH.metricsChan <- envoyMetrics
 	}
 }

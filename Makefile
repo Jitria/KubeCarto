@@ -19,28 +19,55 @@ create-sentryflow:
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
 	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
 
+.PHONY: create-sentryflow-operator
+create-sentryflow-operator:
+	docker build -t $(OPERATOR_IMAGE_NAME):$(TAG) -f sentryflow/operator/Dockerfile .
+	docker save -o $(OPERATOR_NAME)-$(TAG).tar $(OPERATOR_IMAGE_NAME):$(TAG)
+	docker rmi $(OPERATOR_IMAGE_NAME):$(TAG)
+	ctr -n=k8s.io image import $(OPERATOR_NAME)-$(TAG).tar
+	rm -f $(OPERATOR_NAME)-$(TAG).tar
+	kubectl delete -f ./deployments/$(OPERATOR_NAME).yaml --ignore-not-found
+	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
+
+.PHONY: create-sentryflow-agent
+create-sentryflow-agent:
+	docker build -t $(AGENT_IMAGE_NAME):$(TAG) -f sentryflow/agent/Dockerfile .
+	docker save -o $(AGENT_NAME)-$(TAG).tar $(AGENT_IMAGE_NAME):$(TAG)
+	docker rmi $(AGENT_IMAGE_NAME):$(TAG)
+	ctr -n=k8s.io image import $(AGENT_NAME)-$(TAG).tar
+	rm -f $(AGENT_NAME)-$(TAG).tar
+	kubectl delete -f ./deployments/$(AGENT_NAME).yaml --ignore-not-found
+	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
+
 .PHONY: create-client
-create-client:
+create-client: delete-client
 	kubectl apply -f ./deployments/log-client.yaml
 	kubectl apply -f ./deployments/mongo-client.yaml
 	
 .PHONY: create-example
-create-example:
+create-example: delete-example
 	kubectl apply -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
 
 .PHONY: delete-sentryflow
-delete:
-	kubectl delete all --all -n sentryflow
-	kubectl delete namespace sentryflow
+delete-sentryflow:
+	kubectl delete all --all -n sentryflow --ignore-not-found
+	kubectl delete namespace sentryflow --ignore-not-found
+
+.PHONY: delete-sentryflow-operator
+delete-sentryflow-operator:
+	kubectl delete -f ./deployments/$(OPERATOR_NAME).yaml --ignore-not-found
+
+.PHONY: delete-sentryflow-agent
+delete-sentryflow-agent:
+	kubectl delete -f ./deployments/$(AGENT_NAME).yaml --ignore-not-found
 
 .PHONY: delete-client
 delete-client:
-	kubectl delete -f ./deployments/log-client.yaml
-	kubectl delete -f ./deployments/mongo-client.yaml
+	kubectl delete -f ./deployments/log-client.yaml ./deployments/mongo-client.yaml --ignore-not-found
 
 .PHONY: delete-example
 delete-example:
-	kubectl delete -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
+	kubectl delete -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml --ignore-not-found
 
 .PHONY: build-image
 build-image:
