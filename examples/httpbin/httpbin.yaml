@@ -6,8 +6,9 @@ metadata:
     app: httpbin
 spec:
   ports:
-  - port: 8000
-    name: http
+  - name: http
+    port: 8000
+    targetPort: 80
   selector:
     app: httpbin
 ---
@@ -31,4 +32,4 @@ spec:
       - name: httpbin
         image: docker.io/kennethreitz/httpbin
         ports:
-        - containerPort: 8000
+        - containerPort: 80

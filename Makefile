@@ -13,7 +13,7 @@ MONGO_CLIENT_IMAGE_NAME = $(PREFIX)/$(MONGO_CLIENT_NAME)
 TAG = v0.1
 
 .PHONY: create-sentryflow
-create-sentryflow: 
+create-sentryflow: build-image
 	kubectl apply -f ./deployments/sentryflow.yaml
 	sleep 1
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
@@ -63,7 +63,8 @@ delete-sentryflow-agent:
 
 .PHONY: delete-client
 delete-client:
-	kubectl delete -f ./deployments/log-client.yaml ./deployments/mongo-client.yaml --ignore-not-found
+	kubectl delete -f ./deployments/log-client.yaml --ignore-not-found
+	kubectl delete -f ./deployments/mongo-client.yaml --ignore-not-found
 
 .PHONY: delete-example
 delete-example:
