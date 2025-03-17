@@ -26,6 +26,7 @@ create-sentryflow-operator:
 	docker rmi $(OPERATOR_IMAGE_NAME):$(TAG)
 	ctr -n=k8s.io image import $(OPERATOR_NAME)-$(TAG).tar
 	rm -f $(OPERATOR_NAME)-$(TAG).tar
+	kubectl apply -f ./deployments/sentryflow.yaml
 	kubectl delete -f ./deployments/$(OPERATOR_NAME).yaml --ignore-not-found
 	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
 
@@ -36,6 +37,7 @@ create-sentryflow-agent:
 	docker rmi $(AGENT_IMAGE_NAME):$(TAG)
 	ctr -n=k8s.io image import $(AGENT_NAME)-$(TAG).tar
 	rm -f $(AGENT_NAME)-$(TAG).tar
+	kubectl apply -f ./deployments/sentryflow.yaml
 	kubectl delete -f ./deployments/$(AGENT_NAME).yaml --ignore-not-found
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
 
@@ -93,3 +95,6 @@ build-image:
 	rm -f $(LOG_CLIENT_NAME)-$(TAG).tar
 	rm -f $(MONGO_CLIENT_NAME)-$(TAG).tar
 
+.PHONY: watch
+watch:
+	watch kubectl get all -n sentryflow
