@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sentryflow-agent
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,3 +40,21 @@ spec:
     protocol: TCP
     port: 4317
     targetPort: 4317
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentryflow
+  name: sentryflow-operator
+spec:
+  selector:
+    app: sentryflow-operator
+  ports:
+  - name: agent-grpc
+    protocol: TCP
+    port: 5317
+    targetPort: 5317
+  - name: sentryflow-grpc
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
