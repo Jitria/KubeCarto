@@ -14,6 +14,7 @@ TAG = v0.1
 
 .PHONY: create-sentryflow
 create-sentryflow: build-image
+	kubectl label namespace sample default sentryflow istio-injection=enabled
 	kubectl apply -f ./deployments/sentryflow.yaml
 	sleep 1
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml

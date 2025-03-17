@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: sentryflow-agent
+  name: sentryflow-sa
 ---
 apiVersion: apps/v1
 kind: Deployment
