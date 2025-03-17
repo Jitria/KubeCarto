@@ -14,7 +14,7 @@ TAG = v0.1
 
 .PHONY: create-sentryflow
 create-sentryflow: build-image
-	kubectl label namespace sample default sentryflow istio-injection=enabled
+	kubectl label namespace default sentryflow istio-injection=enabled
 	kubectl apply -f ./deployments/sentryflow.yaml
 	sleep 1
 	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
@@ -22,6 +22,7 @@ create-sentryflow: build-image
 
 .PHONY: create-sentryflow-operator
 create-sentryflow-operator:
+	kubectl label namespace default sentryflow istio-injection=enabled
 	docker build -t $(OPERATOR_IMAGE_NAME):$(TAG) -f sentryflow/operator/Dockerfile .
 	docker save -o $(OPERATOR_NAME)-$(TAG).tar $(OPERATOR_IMAGE_NAME):$(TAG)
 	docker rmi $(OPERATOR_IMAGE_NAME):$(TAG)
@@ -33,6 +34,7 @@ create-sentryflow-operator:
 
 .PHONY: create-sentryflow-agent
 create-sentryflow-agent:
+	kubectl label namespace default sentryflow istio-injection=enabled
 	docker build -t $(AGENT_IMAGE_NAME):$(TAG) -f sentryflow/agent/Dockerfile .
 	docker save -o $(AGENT_NAME)-$(TAG).tar $(AGENT_IMAGE_NAME):$(TAG)
 	docker rmi $(AGENT_IMAGE_NAME):$(TAG)
@@ -49,6 +51,7 @@ create-client: delete-client
 	
 .PHONY: create-example
 create-example: delete-example
+	kubectl label namespace default sentryflow istio-injection=enabled
 	kubectl apply -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
 
 .PHONY: delete-sentryflow

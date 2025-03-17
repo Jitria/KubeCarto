@@ -307,9 +307,9 @@ func PatchNamespaces() bool {
 		namespace := ns.DeepCopy()
 
 		// Skip the following namespaces
-		if namespace.Name == "sentryflow" {
-			continue
-		}
+		// if namespace.Name == "sentryflow" {
+		// 	continue
+		// }
 
 		namespace.Labels["istio-injection"] = "enabled"
 
