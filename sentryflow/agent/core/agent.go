@@ -103,6 +103,28 @@ func Agent() {
 
 	// == //
 
+	// Start collector
+	if !collector.StartCollector() {
+		sf.DestroyAgent()
+		return
+	}
+
+	// Start log processor
+	if !processor.StartLogProcessor(sf.waitGroup) {
+		sf.DestroyAgent()
+		return
+	}
+
+	// Start exporter
+	if !uploader.StartUploader(sf.waitGroup) {
+		sf.DestroyAgent()
+		return
+	}
+
+	log.Print("[Agent] Initialization is completed")
+
+	// == //
+
 	// Initialize Kubernetes client
 	if !k8s.InitK8sClient() {
 		sf.DestroyAgent()
@@ -133,28 +155,6 @@ func Agent() {
 			return
 		}
 	}
-
-	// == //
-
-	// Start collector
-	if !collector.StartCollector() {
-		sf.DestroyAgent()
-		return
-	}
-
-	// Start log processor
-	if !processor.StartLogProcessor(sf.waitGroup) {
-		sf.DestroyAgent()
-		return
-	}
-
-	// Start exporter
-	if !uploader.StartUploader(sf.waitGroup) {
-		sf.DestroyAgent()
-		return
-	}
-
-	log.Print("[Agent] Initialization is completed")
 
 	// == //
 
