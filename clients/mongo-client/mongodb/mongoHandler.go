@@ -22,7 +22,6 @@ type DBHandler struct {
 
 	database      *mongo.Database
 	apiLogCol     *mongo.Collection
-	apiMetricsCol *mongo.Collection
 	evyMetricsCol *mongo.Collection
 }
 
@@ -56,7 +55,6 @@ func NewMongoDBHandler(mongoDBAddr string) (*DBHandler, error) {
 
 	// Create APILogs and Metrics collections
 	dbHandler.apiLogCol = dbHandler.database.Collection("APILogs")
-	dbHandler.apiMetricsCol = dbHandler.database.Collection("APIMetrics")
 	dbHandler.evyMetricsCol = dbHandler.database.Collection("EnvoyMetrics")
 
 	return &dbHandler, nil
