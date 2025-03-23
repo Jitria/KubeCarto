@@ -23,16 +23,24 @@ const (
 	SentryFlow_GetEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GetEnvoyMetrics"
 	SentryFlow_GiveAPILog_FullMethodName       = "/protobuf.SentryFlow/GiveAPILog"
 	SentryFlow_GiveEnvoyMetrics_FullMethodName = "/protobuf.SentryFlow/GiveEnvoyMetrics"
+	SentryFlow_GiveDeployInfo_FullMethodName   = "/protobuf.SentryFlow/GiveDeployInfo"
+	SentryFlow_GivePodInfo_FullMethodName      = "/protobuf.SentryFlow/GivePodInfo"
+	SentryFlow_GiveSvcInfo_FullMethodName      = "/protobuf.SentryFlow/GiveSvcInfo"
 )
 
 // SentryFlowClient is the client API for SentryFlow service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SentryFlowClient interface {
+	// enovy -> agent
 	GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error)
 	GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error)
+	// agent -> operator
 	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
 	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
+	GiveDeployInfo(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error)
+	GivePodInfo(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error)
+	GiveSvcInfo(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error)
 }
 
 type sentryFlowClient struct {
@@ -107,14 +115,49 @@ func (c *sentryFlowClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.Ca
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GiveEnvoyMetricsClient = grpc.ClientStreamingClient[EnvoyMetrics, Response]
 
+func (c *sentryFlowClient) GiveDeployInfo(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_GiveDeployInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) GivePodInfo(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_GivePodInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) GiveSvcInfo(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_GiveSvcInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SentryFlowServer is the server API for SentryFlow service.
 // All implementations should embed UnimplementedSentryFlowServer
 // for forward compatibility.
 type SentryFlowServer interface {
+	// enovy -> agent
 	GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error
 	GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error
+	// agent -> operator
 	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
 	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
+	GiveDeployInfo(context.Context, *Deploy) (*Response, error)
+	GivePodInfo(context.Context, *Pod) (*Response, error)
+	GiveSvcInfo(context.Context, *Service) (*Response, error)
 }
 
 // UnimplementedSentryFlowServer should be embedded to have
@@ -135,6 +178,15 @@ func (UnimplementedSentryFlowServer) GiveAPILog(grpc.ClientStreamingServer[APILo
 }
 func (UnimplementedSentryFlowServer) GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveEnvoyMetrics not implemented")
+}
+func (UnimplementedSentryFlowServer) GiveDeployInfo(context.Context, *Deploy) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveDeployInfo not implemented")
+}
+func (UnimplementedSentryFlowServer) GivePodInfo(context.Context, *Pod) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GivePodInfo not implemented")
+}
+func (UnimplementedSentryFlowServer) GiveSvcInfo(context.Context, *Service) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveSvcInfo not implemented")
 }
 func (UnimplementedSentryFlowServer) testEmbeddedByValue() {}
 
@@ -192,13 +244,80 @@ func _SentryFlow_GiveEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GiveEnvoyMetricsServer = grpc.ClientStreamingServer[EnvoyMetrics, Response]
 
+func _SentryFlow_GiveDeployInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Deploy)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).GiveDeployInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_GiveDeployInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).GiveDeployInfo(ctx, req.(*Deploy))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_GivePodInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Pod)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).GivePodInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_GivePodInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).GivePodInfo(ctx, req.(*Pod))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_GiveSvcInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Service)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).GiveSvcInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_GiveSvcInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).GiveSvcInfo(ctx, req.(*Service))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SentryFlow_ServiceDesc is the grpc.ServiceDesc for SentryFlow service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SentryFlow_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "protobuf.SentryFlow",
 	HandlerType: (*SentryFlowServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GiveDeployInfo",
+			Handler:    _SentryFlow_GiveDeployInfo_Handler,
+		},
+		{
+			MethodName: "GivePodInfo",
+			Handler:    _SentryFlow_GivePodInfo_Handler,
+		},
+		{
+			MethodName: "GiveSvcInfo",
+			Handler:    _SentryFlow_GiveSvcInfo_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "GetAPILog",

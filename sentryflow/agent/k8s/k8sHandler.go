@@ -5,14 +5,15 @@ package k8s
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"k8s.io/apimachinery/pkg/util/json"
 
 	"Agent/types"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -39,8 +40,9 @@ type KubernetesHandler struct {
 	watchers  map[string]*cache.ListWatch
 	informers map[string]cache.Controller
 
-	podMap     map[string]*corev1.Pod     // NOT thread safe
-	serviceMap map[string]*corev1.Service // NOT thread safe
+	podMap     map[string]*corev1.Pod        // NOT thread safe, key: Pod IP
+	serviceMap map[string]*corev1.Service    // NOT thread safe, key: Service IP
+	deployMap  map[string]*appsv1.Deployment // NOT thread safe, key: Namespace/DeploymentName
 }
 
 // NewK8sHandler Function
@@ -51,6 +53,7 @@ func NewK8sHandler() *KubernetesHandler {
 
 		podMap:     make(map[string]*corev1.Pod),
 		serviceMap: make(map[string]*corev1.Service),
+		deployMap:  make(map[string]*appsv1.Deployment),
 	}
 
 	return kh
@@ -79,12 +82,24 @@ func InitK8sClient() bool {
 	// Create a mapping table for existing pods and services to IPs
 	K8sH.initExistingResources()
 
-	watchTargets := []string{"pods", "services"}
+	watchTargetsCoreV1 := []string{"pods", "services"}
+	watchTargetsAppsV1 := []string{"deployments"}
 
 	//  Initialize watchers for pods and services
-	for _, target := range watchTargets {
+	for _, target := range watchTargetsCoreV1 {
 		watcher := cache.NewListWatchFromClient(
 			K8sH.clientSet.CoreV1().RESTClient(),
+			target,
+			corev1.NamespaceAll,
+			fields.Everything(),
+		)
+		K8sH.watchers[target] = watcher
+	}
+
+	// Initialize watchers for deployments
+	for _, target := range watchTargetsAppsV1 {
+		watcher := cache.NewListWatchFromClient(
+			K8sH.clientSet.AppsV1().RESTClient(),
 			target,
 			corev1.NamespaceAll,
 			fields.Everything(),
@@ -108,42 +123,55 @@ func (k8s *KubernetesHandler) initExistingResources() {
 	podList, err := k8s.clientSet.CoreV1().Pods(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		log.Printf("[K8s] Failed to get Pods: %v", err.Error())
-	}
-
-	// Add existing Pods to the podMap
-	for _, pod := range podList.Items {
-		currentPod := pod
-		k8s.podMap[pod.Status.PodIP] = &currentPod
-		log.Printf("[K8s] Add existing pod %s: %s/%s", pod.Status.PodIP, pod.Namespace, pod.Name)
+	} else {
+		for _, pod := range podList.Items {
+			currentPod := pod
+			k8s.podMap[pod.Status.PodIP] = &currentPod
+			log.Printf("[K8s] Add existing pod %s: %s/%s", pod.Status.PodIP, pod.Namespace, pod.Name)
+		}
 	}
 
 	// List existing Services
 	serviceList, err := k8s.clientSet.CoreV1().Services(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
 	if err != nil {
 		log.Printf("[K8s] Failed to get Services: %v", err.Error())
+	} else {
+		for _, service := range serviceList.Items {
+			currentService := service
+			// Check if the service has a LoadBalancer type
+			if service.Spec.Type == corev1.ServiceTypeLoadBalancer {
+				for _, lbIngress := range service.Status.LoadBalancer.Ingress {
+					lbIP := lbIngress.IP
+					if lbIP != "" {
+						k8s.serviceMap[lbIP] = &currentService
+						log.Printf("[K8s] Add existing service (LoadBalancer) %s: %s/%s", lbIP, service.Namespace, service.Name)
+					}
+				}
+			} else {
+				// ClusterIP
+				if currentService.Spec.ClusterIP != "" && currentService.Spec.ClusterIP != "None" {
+					k8s.serviceMap[currentService.Spec.ClusterIP] = &currentService
+					log.Printf("[K8s] Add existing Service IP=%s -> %s/%s", currentService.Spec.ClusterIP, currentService.Namespace, currentService.Name)
+				}
+				// ExternalIPs
+				for _, eip := range currentService.Spec.ExternalIPs {
+					k8s.serviceMap[eip] = &currentService
+					log.Printf("[K8s] Add existing Service ExternalIP=%s -> %s/%s", eip, currentService.Namespace, currentService.Name)
+				}
+			}
+		}
 	}
 
-	// Add existing Services to the serviceMap
-	for _, service := range serviceList.Items {
-		currentService := service
-
-		// Check if the service has a LoadBalancer type
-		if service.Spec.Type == "LoadBalancer" {
-			for _, lbIngress := range service.Status.LoadBalancer.Ingress {
-				lbIP := lbIngress.IP
-				if lbIP != "" {
-					k8s.serviceMap[lbIP] = &currentService
-					log.Printf("[K8s] Add existing service (LoadBalancer) %s: %s/%s", lbIP, service.Namespace, service.Name)
-				}
-			}
-		} else {
-			k8s.serviceMap[service.Spec.ClusterIP] = &currentService
-			if len(service.Spec.ExternalIPs) != 0 {
-				for _, eIP := range service.Spec.ExternalIPs {
-					k8s.serviceMap[eIP] = &currentService
-					log.Printf("[K8s] Add existing service %s: %s/%s", eIP, service.Namespace, service.Name)
-				}
-			}
+	// List existing Deployments
+	deployList, err := k8s.clientSet.AppsV1().Deployments(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
+	if err != nil {
+		log.Printf("[K8s] Failed to get Deployments: %v", err)
+	} else {
+		for _, deploy := range deployList.Items {
+			currentdeploy := deploy
+			key := fmt.Sprintf("%s/%s", deploy.Namespace, deploy.Name)
+			k8s.deployMap[key] = &currentdeploy
+			log.Printf("[K8s] Add existing Deployment %s", key)
 		}
 	}
 }
@@ -151,91 +179,135 @@ func (k8s *KubernetesHandler) initExistingResources() {
 // initInformers Function that initializes informers for services and pods in a cluster
 func (k8s *KubernetesHandler) initInformers() {
 	// Create Pod controller informer
-	_, pc := cache.NewInformer(
-		k8s.watchers["pods"],
-		&corev1.Pod{},
-		time.Second*0,
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) { // Add pod
-				pod := obj.(*corev1.Pod)
-				k8s.podMap[pod.Status.PodIP] = pod
+	if k8s.watchers["pods"] != nil {
+		_, podController := cache.NewInformerWithOptions(
+			cache.InformerOptions{
+				ListerWatcher: k8s.watchers["pods"],
+				ObjectType:    &corev1.Pod{},
+				ResyncPeriod:  0,
+				Handler: cache.ResourceEventHandlerFuncs{
+					AddFunc: func(obj interface{}) {
+						pod := obj.(*corev1.Pod)
+						ip := pod.Status.PodIP
+						if ip != "" {
+							k8s.podMap[ip] = pod
+						}
+					},
+					UpdateFunc: func(oldObj, newObj interface{}) {
+						newPod := newObj.(*corev1.Pod)
+						ip := newPod.Status.PodIP
+						if ip != "" {
+							k8s.podMap[ip] = newPod
+						}
+					},
+					DeleteFunc: func(obj interface{}) {
+						pod := obj.(*corev1.Pod)
+						ip := pod.Status.PodIP
+						if ip != "" {
+							delete(k8s.podMap, ip)
+						}
+					},
+				},
 			},
-			UpdateFunc: func(oldObj, newObj interface{}) { // Update pod
-				newPod := newObj.(*corev1.Pod)
-				k8s.podMap[newPod.Status.PodIP] = newPod
-			},
-			DeleteFunc: func(obj interface{}) { // Remove deleted pod
-				pod := obj.(*corev1.Pod)
-				delete(k8s.podMap, pod.Status.PodIP)
-			},
-		},
-	)
-	k8s.informers["pods"] = pc
+		)
+		k8s.informers["pods"] = podController
+	}
 
 	// Create Service controller informer
-	_, sc := cache.NewInformer(
-		k8s.watchers["services"],
-		&corev1.Service{},
-		time.Second*0,
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) { // Add service
-				service := obj.(*corev1.Service)
+	if k8s.watchers["services"] != nil {
+		_, svcController := cache.NewInformerWithOptions(
+			cache.InformerOptions{
+				ListerWatcher: k8s.watchers["services"],
+				ObjectType:    &corev1.Service{},
+				ResyncPeriod:  0, // 필요하면 조정
+				Handler: cache.ResourceEventHandlerFuncs{
+					AddFunc: func(obj interface{}) {
+						svc := obj.(*corev1.Service)
+						k8s.addOrUpdateServiceIPs(svc)
+					},
+					UpdateFunc: func(oldObj, newObj interface{}) {
+						oldSvc := oldObj.(*corev1.Service)
+						newSvc := newObj.(*corev1.Service)
+						// 기존 IP 제거 후 새로 등록
+						k8s.removeServiceIPs(oldSvc)
+						k8s.addOrUpdateServiceIPs(newSvc)
+					},
+					DeleteFunc: func(obj interface{}) {
+						svc := obj.(*corev1.Service)
+						k8s.removeServiceIPs(svc)
+					},
+				},
+			},
+		)
+		k8s.informers["services"] = svcController
+	}
 
-				if service.Spec.Type == "LoadBalancer" {
-					for _, lbIngress := range service.Status.LoadBalancer.Ingress {
-						lbIP := lbIngress.IP
-						if lbIP != "" {
-							k8s.serviceMap[lbIP] = service
-						}
-					}
-				} else {
-					k8s.serviceMap[service.Spec.ClusterIP] = service
-					if len(service.Spec.ExternalIPs) != 0 {
-						for _, eIP := range service.Spec.ExternalIPs {
-							k8s.serviceMap[eIP] = service
-						}
-					}
-				}
+	// Create Deployment controller informer
+	if k8s.watchers["deployments"] != nil {
+		_, depController := cache.NewInformerWithOptions(
+			cache.InformerOptions{
+				ListerWatcher: k8s.watchers["deployments"],
+				ObjectType:    &appsv1.Deployment{},
+				ResyncPeriod:  0,
+				Handler: cache.ResourceEventHandlerFuncs{
+					AddFunc: func(obj interface{}) {
+						dep := obj.(*appsv1.Deployment)
+						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
+						k8s.deployMap[key] = dep
+					},
+					UpdateFunc: func(oldObj, newObj interface{}) {
+						dep := newObj.(*appsv1.Deployment)
+						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
+						k8s.deployMap[key] = dep
+					},
+					DeleteFunc: func(obj interface{}) {
+						dep := obj.(*appsv1.Deployment)
+						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
+						delete(k8s.deployMap, key)
+					},
+				},
 			},
-			UpdateFunc: func(oldObj, newObj interface{}) { // Update service
-				newService := newObj.(*corev1.Service)
-				if newService.Spec.Type == "LoadBalancer" {
-					for _, lbIngress := range newService.Status.LoadBalancer.Ingress {
-						lbIP := lbIngress.IP
-						if lbIP != "" {
-							k8s.serviceMap[lbIP] = newService
-						}
-					}
-				} else {
-					k8s.serviceMap[newService.Spec.ClusterIP] = newService
-					if len(newService.Spec.ExternalIPs) != 0 {
-						for _, eIP := range newService.Spec.ExternalIPs {
-							k8s.serviceMap[eIP] = newService
-						}
-					}
-				}
-			},
-			DeleteFunc: func(obj interface{}) {
-				service := obj.(*corev1.Service)
-				if service.Spec.Type == "LoadBalancer" {
-					for _, lbIngress := range service.Status.LoadBalancer.Ingress {
-						lbIP := lbIngress.IP
-						if lbIP != "" {
-							delete(k8s.serviceMap, lbIP)
-						}
-					}
-				} else {
-					delete(k8s.serviceMap, service.Spec.ClusterIP) // Remove deleted service
-					if len(service.Spec.ExternalIPs) != 0 {
-						for _, eIP := range service.Spec.ExternalIPs {
-							delete(k8s.serviceMap, eIP)
-						}
-					}
-				}
-			},
-		},
-	)
-	k8s.informers["services"] = sc
+		)
+		k8s.informers["deployments"] = depController
+	}
+}
+
+// addOrUpdateServiceIPs Function
+func (k8s *KubernetesHandler) addOrUpdateServiceIPs(svc *corev1.Service) {
+	if svc.Spec.Type == corev1.ServiceTypeLoadBalancer {
+		for _, lbIngress := range svc.Status.LoadBalancer.Ingress {
+			lbIP := lbIngress.IP
+			if lbIP != "" {
+				k8s.serviceMap[lbIP] = svc
+			}
+		}
+	} else {
+		if svc.Spec.ClusterIP != "" && svc.Spec.ClusterIP != "None" {
+			k8s.serviceMap[svc.Spec.ClusterIP] = svc
+		}
+		for _, eip := range svc.Spec.ExternalIPs {
+			k8s.serviceMap[eip] = svc
+		}
+	}
+}
+
+// removeServiceIPs Function
+func (k8s *KubernetesHandler) removeServiceIPs(svc *corev1.Service) {
+	if svc.Spec.Type == corev1.ServiceTypeLoadBalancer {
+		for _, lbIngress := range svc.Status.LoadBalancer.Ingress {
+			lbIP := lbIngress.IP
+			if lbIP != "" {
+				delete(k8s.serviceMap, lbIP)
+			}
+		}
+	} else {
+		if svc.Spec.ClusterIP != "" && svc.Spec.ClusterIP != "None" {
+			delete(k8s.serviceMap, svc.Spec.ClusterIP)
+		}
+		for _, eip := range svc.Spec.ExternalIPs {
+			delete(k8s.serviceMap, eip)
+		}
+	}
 }
 
 // == //
@@ -244,15 +316,17 @@ func (k8s *KubernetesHandler) initInformers() {
 func RunInformers(stopChan chan struct{}, wg *sync.WaitGroup) {
 	wg.Add(1)
 
-	for name, informer := range K8sH.informers {
-		name := name
-		informer := informer
-		go func() {
-			log.Printf("[RunInformers] Starting an informer for %s", name)
-			informer.Run(stopChan)
-			defer wg.Done()
-		}()
-	}
+	go func() {
+		defer wg.Done()
+		for name, informer := range K8sH.informers {
+			go func(name string, inf cache.Controller) {
+				log.Printf("[RunInformers] Starting informer for %s", name)
+				inf.Run(stopChan)
+			}(name, informer)
+		}
+		<-stopChan
+		log.Print("[RunInformers] Stop signal received. All informers stopping.")
+	}()
 
 	log.Print("[RunInformers] Started all Kubernetes informers")
 }
