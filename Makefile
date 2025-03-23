@@ -32,8 +32,8 @@ create-sentryflow-operator:
 	kubectl delete -f ./deployments/$(OPERATOR_NAME).yaml --ignore-not-found
 	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
 
-.PHONY: create-sentryflow-agent
-create-sentryflow-agent:
+.PHONY: create-sentryflow-agent1
+create-sentryflow-agent1:
 	docker build -t $(AGENT_IMAGE_NAME):$(TAG) -f sentryflow/agent/Dockerfile .
 	docker save -o $(AGENT_NAME)-$(TAG).tar $(AGENT_IMAGE_NAME):$(TAG)
 	docker rmi $(AGENT_IMAGE_NAME):$(TAG)
@@ -41,8 +41,20 @@ create-sentryflow-agent:
 	rm -f $(AGENT_NAME)-$(TAG).tar
 	kubectl apply -f ./deployments/sentryflow.yaml
 	-kubectl label namespace default sentryflow istio-injection=enabled --overwrite
-	kubectl delete -f ./deployments/$(AGENT_NAME).yaml --ignore-not-found
-	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
+	kubectl delete -f ./deployments/$(AGENT_NAME)1.yaml --ignore-not-found
+	kubectl apply -f ./deployments/$(AGENT_NAME)1.yaml
+
+.PHONY: create-sentryflow-agent2
+create-sentryflow-agent2:
+	docker build -t $(AGENT_IMAGE_NAME):$(TAG) -f sentryflow/agent/Dockerfile .
+	docker save -o $(AGENT_NAME)-$(TAG).tar $(AGENT_IMAGE_NAME):$(TAG)
+	docker rmi $(AGENT_IMAGE_NAME):$(TAG)
+	ctr -n=k8s.io image import $(AGENT_NAME)-$(TAG).tar
+	rm -f $(AGENT_NAME)-$(TAG).tar
+	kubectl apply -f ./deployments/sentryflow.yaml
+	-kubectl label namespace default sentryflow istio-injection=enabled --overwrite
+	kubectl delete -f ./deployments/$(AGENT_NAME)2.yaml --ignore-not-found
+	kubectl apply -f ./deployments/$(AGENT_NAME)2.yaml
 
 .PHONY: create-client
 create-client: delete-client
