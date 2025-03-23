@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"Agent/config"
+	"Agent/types"
 
 	"github.com/Jitria/SentryFlow/protobuf"
 
@@ -31,6 +32,7 @@ type UplHandler struct {
 
 	uploaderAPILogs      chan *protobuf.APILog
 	uploaderEnovyMetrics chan *protobuf.EnvoyMetrics
+	clusterEvents        chan *types.ClusterEvent
 
 	stopChan chan struct{}
 }
@@ -40,6 +42,7 @@ func NewUploaderHandler() *UplHandler {
 	ch := &UplHandler{
 		uploaderAPILogs:      make(chan *protobuf.APILog),
 		uploaderEnovyMetrics: make(chan *protobuf.EnvoyMetrics),
+		clusterEvents:        make(chan *types.ClusterEvent),
 
 		stopChan: make(chan struct{}),
 	}
@@ -56,6 +59,10 @@ func StartUploader(wg *sync.WaitGroup) bool {
 		return false
 	}
 	UplH.grpcClient = grpcClient
+
+	// Export ClusterInfo
+	go UplH.uploadClusterInfo(wg)
+	log.Printf("[Uploader] Exporting Cluster information through gRPC services")
 
 	// Export APILogs
 	go UplH.uploadAPILogs(wg)
@@ -86,6 +93,9 @@ func connectToOperator() (protobuf.SentryFlowClient, error) {
 
 // StopUploader Function
 func StopUploader() bool {
+	// One for uploadClusterInfo
+	UplH.stopChan <- struct{}{}
+
 	// One for uploadAPILogs
 	UplH.stopChan <- struct{}{}
 

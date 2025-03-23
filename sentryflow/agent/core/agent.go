@@ -121,8 +121,6 @@ func Agent() {
 		return
 	}
 
-	log.Print("[Agent] Initialization is completed")
-
 	// == //
 
 	// Initialize Kubernetes client
@@ -155,6 +153,8 @@ func Agent() {
 			return
 		}
 	}
+
+	log.Print("[Agent] Initialization is completed")
 
 	// == //
 

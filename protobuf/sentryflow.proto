@@ -104,7 +104,13 @@ service SentryFlow {
   rpc GiveAPILog(stream APILog) returns (Response);
   rpc GiveEnvoyMetrics(stream EnvoyMetrics) returns (Response);
 
-  rpc GiveDeployInfo(Deploy) returns (Response);
-  rpc GivePodInfo(Pod) returns (Response);
-  rpc GiveSvcInfo(Service) returns (Response);
+  rpc AddDeployInfo(Deploy) returns (Response);
+  rpc UpdateDeployInfo(Deploy) returns (Response);
+  rpc DeleteDeployInfo(Deploy) returns (Response);
+  rpc AddPodInfo(Pod) returns (Response);
+  rpc UpdatePodInfo(Pod) returns (Response);
+  rpc DeletePodInfo(Pod) returns (Response);
+  rpc AddSvcInfo(Service) returns (Response);
+  rpc UpdateSvcInfo(Service) returns (Response);
+  rpc DeleteSvcInfo(Service) returns (Response);
 }

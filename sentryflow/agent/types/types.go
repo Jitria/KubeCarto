@@ -11,6 +11,12 @@ const (
 	K8sResourceTypeService = 2
 )
 
+type ClusterEvent struct {
+	ResourceType string      // "Pod" / "Service" / "Deploy"
+	Action       string      // "ADD", "UPDATE", "DELETE"
+	Object       interface{} // *corev1.Pod, *corev1.Service, *appsv1.Deployment ...
+}
+
 // K8sResource Structure
 type K8sResource struct {
 	Type       uint8

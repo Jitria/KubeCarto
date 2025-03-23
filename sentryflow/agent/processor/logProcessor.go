@@ -46,10 +46,10 @@ func NewLogHandler() *LogHandler {
 // StartLogProcessor Function
 func StartLogProcessor(wg *sync.WaitGroup) bool {
 	// handle API logs
-	go ProcessAPILogs(wg)
+	go processAPILogs(wg)
 
 	// handle Envoy metrics
-	go ProcessEnvoyMetrics(wg)
+	go processEnvoyMetrics(wg)
 
 	log.Print("[LogProcessor] Started Log Processors")
 
@@ -58,10 +58,10 @@ func StartLogProcessor(wg *sync.WaitGroup) bool {
 
 // StopLogProcessor Function
 func StopLogProcessor() bool {
-	// One for ProcessAPILogs
+	// One for processAPILogs
 	LogH.stopChan <- struct{}{}
 
-	// One for ProcessMetrics
+	// One for processMetrics
 	LogH.stopChan <- struct{}{}
 
 	log.Print("[LogProcessor] Stopped Log Processors")
@@ -71,8 +71,8 @@ func StopLogProcessor() bool {
 
 // == //
 
-// ProcessAPILogs Function
-func ProcessAPILogs(wg *sync.WaitGroup) {
+// processAPILogs Function
+func processAPILogs(wg *sync.WaitGroup) {
 	wg.Add(1)
 
 	for {
@@ -96,8 +96,8 @@ func InsertAPILog(data interface{}) {
 	LogH.apiLogChan <- data
 }
 
-// ProcessEnvoyMetrics Function
-func ProcessEnvoyMetrics(wg *sync.WaitGroup) {
+// processEnvoyMetrics Function
+func processEnvoyMetrics(wg *sync.WaitGroup) {
 	wg.Add(1)
 
 	for {

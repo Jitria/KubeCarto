@@ -79,9 +79,6 @@ func InitK8sClient() bool {
 		return false
 	}
 
-	// Create a mapping table for existing pods and services to IPs
-	K8sH.initExistingResources()
-
 	watchTargetsCoreV1 := []string{"pods", "services"}
 	watchTargetsAppsV1 := []string{"deployments"}
 
@@ -115,67 +112,6 @@ func InitK8sClient() bool {
 	return true
 }
 
-// initExistingResources Function that creates a mapping table for existing pods and services to IPs
-// This is required since informers are NOT going to see existing resources until they are updated, created or deleted
-// @todo: Refactor this function, this is kind of messy
-func (k8s *KubernetesHandler) initExistingResources() {
-	// List existing Pods
-	podList, err := k8s.clientSet.CoreV1().Pods(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
-	if err != nil {
-		log.Printf("[K8s] Failed to get Pods: %v", err.Error())
-	} else {
-		for _, pod := range podList.Items {
-			currentPod := pod
-			k8s.podMap[pod.Status.PodIP] = &currentPod
-			log.Printf("[K8s] Add existing pod %s: %s/%s", pod.Status.PodIP, pod.Namespace, pod.Name)
-		}
-	}
-
-	// List existing Services
-	serviceList, err := k8s.clientSet.CoreV1().Services(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
-	if err != nil {
-		log.Printf("[K8s] Failed to get Services: %v", err.Error())
-	} else {
-		for _, service := range serviceList.Items {
-			currentService := service
-			// Check if the service has a LoadBalancer type
-			if service.Spec.Type == corev1.ServiceTypeLoadBalancer {
-				for _, lbIngress := range service.Status.LoadBalancer.Ingress {
-					lbIP := lbIngress.IP
-					if lbIP != "" {
-						k8s.serviceMap[lbIP] = &currentService
-						log.Printf("[K8s] Add existing service (LoadBalancer) %s: %s/%s", lbIP, service.Namespace, service.Name)
-					}
-				}
-			} else {
-				// ClusterIP
-				if currentService.Spec.ClusterIP != "" && currentService.Spec.ClusterIP != "None" {
-					k8s.serviceMap[currentService.Spec.ClusterIP] = &currentService
-					log.Printf("[K8s] Add existing Service IP=%s -> %s/%s", currentService.Spec.ClusterIP, currentService.Namespace, currentService.Name)
-				}
-				// ExternalIPs
-				for _, eip := range currentService.Spec.ExternalIPs {
-					k8s.serviceMap[eip] = &currentService
-					log.Printf("[K8s] Add existing Service ExternalIP=%s -> %s/%s", eip, currentService.Namespace, currentService.Name)
-				}
-			}
-		}
-	}
-
-	// List existing Deployments
-	deployList, err := k8s.clientSet.AppsV1().Deployments(corev1.NamespaceAll).List(context.TODO(), v1.ListOptions{})
-	if err != nil {
-		log.Printf("[K8s] Failed to get Deployments: %v", err)
-	} else {
-		for _, deploy := range deployList.Items {
-			currentdeploy := deploy
-			key := fmt.Sprintf("%s/%s", deploy.Namespace, deploy.Name)
-			k8s.deployMap[key] = &currentdeploy
-			log.Printf("[K8s] Add existing Deployment %s", key)
-		}
-	}
-}
-
 // initInformers Function that initializes informers for services and pods in a cluster
 func (k8s *KubernetesHandler) initInformers() {
 	// Create Pod controller informer
@@ -191,6 +127,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						ip := pod.Status.PodIP
 						if ip != "" {
 							k8s.podMap[ip] = pod
+							log.Printf("[Informer:Pod] ADDED Pod %s/%s, IP=%s", pod.Namespace, pod.Name, ip)
 						}
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
@@ -198,6 +135,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						ip := newPod.Status.PodIP
 						if ip != "" {
 							k8s.podMap[ip] = newPod
+							log.Printf("[Informer:Pod] UPDATED Pod %s/%s, IP=%s", newPod.Namespace, newPod.Name, ip)
 						}
 					},
 					DeleteFunc: func(obj interface{}) {
@@ -205,6 +143,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						ip := pod.Status.PodIP
 						if ip != "" {
 							delete(k8s.podMap, ip)
+							log.Printf("[Informer:Pod] DELETED Pod %s/%s, IP=%s", pod.Namespace, pod.Name, ip)
 						}
 					},
 				},
@@ -219,22 +158,24 @@ func (k8s *KubernetesHandler) initInformers() {
 			cache.InformerOptions{
 				ListerWatcher: k8s.watchers["services"],
 				ObjectType:    &corev1.Service{},
-				ResyncPeriod:  0, // 필요하면 조정
+				ResyncPeriod:  0,
 				Handler: cache.ResourceEventHandlerFuncs{
 					AddFunc: func(obj interface{}) {
 						svc := obj.(*corev1.Service)
 						k8s.addOrUpdateServiceIPs(svc)
+						log.Printf("[Informer:Service] ADDED Service %s/%s", svc.Namespace, svc.Name)
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
 						oldSvc := oldObj.(*corev1.Service)
 						newSvc := newObj.(*corev1.Service)
-						// 기존 IP 제거 후 새로 등록
 						k8s.removeServiceIPs(oldSvc)
 						k8s.addOrUpdateServiceIPs(newSvc)
+						log.Printf("[Informer:Service] UPDATED Service %s/%s", newSvc.Namespace, newSvc.Name)
 					},
 					DeleteFunc: func(obj interface{}) {
 						svc := obj.(*corev1.Service)
 						k8s.removeServiceIPs(svc)
+						log.Printf("[Informer:Service] DELETED Service %s/%s", svc.Namespace, svc.Name)
 					},
 				},
 			},
@@ -254,16 +195,19 @@ func (k8s *KubernetesHandler) initInformers() {
 						dep := obj.(*appsv1.Deployment)
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						k8s.deployMap[key] = dep
+						log.Printf("[Informer:Deploy] ADDED Deployment %s", key)
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
 						dep := newObj.(*appsv1.Deployment)
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						k8s.deployMap[key] = dep
+						log.Printf("[Informer:Deploy] UPDATED Deployment %s", key)
 					},
 					DeleteFunc: func(obj interface{}) {
 						dep := obj.(*appsv1.Deployment)
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						delete(k8s.deployMap, key)
+						log.Printf("[Informer:Deploy] DELETED Deployment %s", key)
 					},
 				},
 			},
@@ -380,8 +324,11 @@ func PatchNamespaces() bool {
 	for _, ns := range namespaces.Items {
 		namespace := ns.DeepCopy()
 
-		// Skip the following namespaces
-		// if namespace.Name == "sentryflow" {
+		// By default, we want to patch the following namespaces
+		// namespace.Name == "sentryflow" => for multicluster networking
+
+		// If don't want to patch the "default" namespace, follwing code can be used
+		// if namespace.Name == "defualt" {
 		// 	continue
 		// }
 
@@ -501,7 +448,7 @@ func LookupK8sResource(srcIP string) types.K8sResource {
 			ret.Labels = svc.Labels
 			ret.Type = types.K8sResourceTypeService
 		}
-	default:
+	default: // Unknown resource
 		ret.Type = types.K8sResourceTypeUnknown
 	}
 
