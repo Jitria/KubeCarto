@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/Jitria/SentryFlow/protobuf"
 )
@@ -22,21 +23,33 @@ type envoyMetricsStreamInform struct {
 	error chan error
 }
 
-// GetEnvoyMetrics Function (for gRPC)
-func (exs *ExpService) GetEnvoyMetrics(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetEnvoyMetricsServer) error {
-	log.Printf("[Exporter] Client %s (%s) connected (GetEnvoyMetrics)", info.HostName, info.IPAddress)
+// InsertEnvoyMetrics Function
+func InsertEnvoyMetrics(evyMetrics *protobuf.EnvoyMetrics) {
+	ExpH.exporterMetrics <- evyMetrics
+}
 
-	currExporter := &envoyMetricsStreamInform{
-		Hostname:      info.HostName,
-		IPAddress:     info.IPAddress,
-		metricsStream: stream,
+// exportEnvoyMetrics Function
+func (exp *ExpHandler) exportEnvoyMetrics(wg *sync.WaitGroup) {
+	wg.Add(1)
+
+	for {
+		select {
+		case evyMetrics, ok := <-exp.exporterMetrics:
+			if !ok {
+				log.Printf("[Exporter] Failed to fetch metrics from Envoy Metrics channel")
+				wg.Done()
+				return
+			}
+
+			if err := exp.SendEnvoyMetrics(evyMetrics); err != nil {
+				log.Printf("[Exporter] Failed to export Envoy metrics: %v", err)
+			}
+
+		case <-exp.stopChan:
+			wg.Done()
+			return
+		}
 	}
-
-	ExpH.exporterLock.Lock()
-	ExpH.envoyMetricsExporters = append(ExpH.envoyMetricsExporters, currExporter)
-	ExpH.exporterLock.Unlock()
-
-	return <-currExporter.error
 }
 
 // SendEnvoyMetrics Function
@@ -59,11 +72,21 @@ func (exp *ExpHandler) SendEnvoyMetrics(evyMetrics *protobuf.EnvoyMetrics) error
 	return nil
 }
 
-// == //
+// GetEnvoyMetrics Function (for gRPC)
+func (exs *ExpService) GetEnvoyMetrics(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetEnvoyMetricsServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected (GetEnvoyMetrics)", info.HostName, info.IPAddress)
 
-// InsertEnvoyMetrics Function
-func InsertEnvoyMetrics(evyMetrics *protobuf.EnvoyMetrics) {
-	ExpH.exporterMetrics <- evyMetrics
+	currExporter := &envoyMetricsStreamInform{
+		Hostname:      info.HostName,
+		IPAddress:     info.IPAddress,
+		metricsStream: stream,
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.envoyMetricsExporters = append(ExpH.envoyMetricsExporters, currExporter)
+	ExpH.exporterLock.Unlock()
+
+	return <-currExporter.error
 }
 
 // == //

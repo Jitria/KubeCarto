@@ -108,8 +108,6 @@ func StartExporter(wg *sync.WaitGroup) bool {
 
 	log.Printf("[Exporter] Exporting API logs through gRPC services")
 
-	log.Printf("[Exporter] Exporting API metrics through gRPC services")
-
 	// Export EnvoyMetrics
 	go ExpH.exportEnvoyMetrics(wg)
 
@@ -132,56 +130,6 @@ func StopExporter() bool {
 	log.Printf("[Exporter] Gracefully stopped Exporter gRPC services")
 
 	return true
-}
-
-// == //
-
-// exportAPILogs Function
-func (exp *ExpHandler) exportAPILogs(wg *sync.WaitGroup) {
-	wg.Add(1)
-
-	for {
-		select {
-		case apiLog, ok := <-exp.exporterAPILogs:
-			if !ok {
-				log.Printf("[Exporter] Failed to fetch APIs from APIs channel")
-				wg.Done()
-				return
-			}
-
-			if err := exp.SendAPILogs(apiLog); err != nil {
-				log.Printf("[Exporter] Failed to export API Logs: %v", err)
-			}
-
-		case <-exp.stopChan:
-			wg.Done()
-			return
-		}
-	}
-}
-
-// exportEnvoyMetrics Function
-func (exp *ExpHandler) exportEnvoyMetrics(wg *sync.WaitGroup) {
-	wg.Add(1)
-
-	for {
-		select {
-		case evyMetrics, ok := <-exp.exporterMetrics:
-			if !ok {
-				log.Printf("[Exporter] Failed to fetch metrics from Envoy Metrics channel")
-				wg.Done()
-				return
-			}
-
-			if err := exp.SendEnvoyMetrics(evyMetrics); err != nil {
-				log.Printf("[Exporter] Failed to export Envoy metrics: %v", err)
-			}
-
-		case <-exp.stopChan:
-			wg.Done()
-			return
-		}
-	}
 }
 
 // == //
