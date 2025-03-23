@@ -14,7 +14,7 @@ const (
 type ClusterEvent struct {
 	ResourceType string      // "Pod" / "Service" / "Deploy"
 	Action       string      // "ADD", "UPDATE", "DELETE"
-	Object       interface{} // *corev1.Pod, *corev1.Service, *appsv1.Deployment ...
+	Object       interface{} // *corev1.Pod, *corev1.Service, *appsv1.Deployment
 }
 
 // K8sResource Structure

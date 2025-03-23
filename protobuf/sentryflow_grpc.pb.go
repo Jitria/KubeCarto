@@ -19,13 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SentryFlow_GetAPILog_FullMethodName        = "/protobuf.SentryFlow/GetAPILog"
-	SentryFlow_GetEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GetEnvoyMetrics"
-	SentryFlow_GiveAPILog_FullMethodName       = "/protobuf.SentryFlow/GiveAPILog"
-	SentryFlow_GiveEnvoyMetrics_FullMethodName = "/protobuf.SentryFlow/GiveEnvoyMetrics"
-	SentryFlow_GiveDeployInfo_FullMethodName   = "/protobuf.SentryFlow/GiveDeployInfo"
-	SentryFlow_GivePodInfo_FullMethodName      = "/protobuf.SentryFlow/GivePodInfo"
-	SentryFlow_GiveSvcInfo_FullMethodName      = "/protobuf.SentryFlow/GiveSvcInfo"
+	SentryFlow_GetAPILog_FullMethodName         = "/protobuf.SentryFlow/GetAPILog"
+	SentryFlow_GetEnvoyMetrics_FullMethodName   = "/protobuf.SentryFlow/GetEnvoyMetrics"
+	SentryFlow_GiveAPILog_FullMethodName        = "/protobuf.SentryFlow/GiveAPILog"
+	SentryFlow_GiveEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GiveEnvoyMetrics"
+	SentryFlow_AddDeployEvent_FullMethodName    = "/protobuf.SentryFlow/AddDeployEvent"
+	SentryFlow_UpdateDeployEvent_FullMethodName = "/protobuf.SentryFlow/UpdateDeployEvent"
+	SentryFlow_DeleteDeployEvent_FullMethodName = "/protobuf.SentryFlow/DeleteDeployEvent"
+	SentryFlow_AddPodEvent_FullMethodName       = "/protobuf.SentryFlow/AddPodEvent"
+	SentryFlow_UpdatePodEvent_FullMethodName    = "/protobuf.SentryFlow/UpdatePodEvent"
+	SentryFlow_DeletePodEvent_FullMethodName    = "/protobuf.SentryFlow/DeletePodEvent"
+	SentryFlow_AddSvcEvent_FullMethodName       = "/protobuf.SentryFlow/AddSvcEvent"
+	SentryFlow_UpdateSvcEvent_FullMethodName    = "/protobuf.SentryFlow/UpdateSvcEvent"
+	SentryFlow_DeleteSvcEvent_FullMethodName    = "/protobuf.SentryFlow/DeleteSvcEvent"
 )
 
 // SentryFlowClient is the client API for SentryFlow service.
@@ -38,9 +44,15 @@ type SentryFlowClient interface {
 	// agent -> operator
 	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
 	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
-	GiveDeployInfo(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error)
-	GivePodInfo(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error)
-	GiveSvcInfo(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error)
+	AddDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error)
+	UpdateDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error)
+	DeleteDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error)
+	AddPodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error)
+	UpdatePodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error)
+	DeletePodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error)
+	AddSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error)
+	UpdateSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error)
+	DeleteSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error)
 }
 
 type sentryFlowClient struct {
@@ -115,30 +127,90 @@ func (c *sentryFlowClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.Ca
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GiveEnvoyMetricsClient = grpc.ClientStreamingClient[EnvoyMetrics, Response]
 
-func (c *sentryFlowClient) GiveDeployInfo(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error) {
+func (c *sentryFlowClient) AddDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
-	err := c.cc.Invoke(ctx, SentryFlow_GiveDeployInfo_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, SentryFlow_AddDeployEvent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *sentryFlowClient) GivePodInfo(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error) {
+func (c *sentryFlowClient) UpdateDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
-	err := c.cc.Invoke(ctx, SentryFlow_GivePodInfo_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, SentryFlow_UpdateDeployEvent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *sentryFlowClient) GiveSvcInfo(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error) {
+func (c *sentryFlowClient) DeleteDeployEvent(ctx context.Context, in *Deploy, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
-	err := c.cc.Invoke(ctx, SentryFlow_GiveSvcInfo_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, SentryFlow_DeleteDeployEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) AddPodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_AddPodEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) UpdatePodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_UpdatePodEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) DeletePodEvent(ctx context.Context, in *Pod, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_DeletePodEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) AddSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_AddSvcEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) UpdateSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_UpdateSvcEvent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sentryFlowClient) DeleteSvcEvent(ctx context.Context, in *Service, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, SentryFlow_DeleteSvcEvent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,9 +227,15 @@ type SentryFlowServer interface {
 	// agent -> operator
 	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
 	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
-	GiveDeployInfo(context.Context, *Deploy) (*Response, error)
-	GivePodInfo(context.Context, *Pod) (*Response, error)
-	GiveSvcInfo(context.Context, *Service) (*Response, error)
+	AddDeployEvent(context.Context, *Deploy) (*Response, error)
+	UpdateDeployEvent(context.Context, *Deploy) (*Response, error)
+	DeleteDeployEvent(context.Context, *Deploy) (*Response, error)
+	AddPodEvent(context.Context, *Pod) (*Response, error)
+	UpdatePodEvent(context.Context, *Pod) (*Response, error)
+	DeletePodEvent(context.Context, *Pod) (*Response, error)
+	AddSvcEvent(context.Context, *Service) (*Response, error)
+	UpdateSvcEvent(context.Context, *Service) (*Response, error)
+	DeleteSvcEvent(context.Context, *Service) (*Response, error)
 }
 
 // UnimplementedSentryFlowServer should be embedded to have
@@ -179,14 +257,32 @@ func (UnimplementedSentryFlowServer) GiveAPILog(grpc.ClientStreamingServer[APILo
 func (UnimplementedSentryFlowServer) GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveEnvoyMetrics not implemented")
 }
-func (UnimplementedSentryFlowServer) GiveDeployInfo(context.Context, *Deploy) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GiveDeployInfo not implemented")
+func (UnimplementedSentryFlowServer) AddDeployEvent(context.Context, *Deploy) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddDeployEvent not implemented")
 }
-func (UnimplementedSentryFlowServer) GivePodInfo(context.Context, *Pod) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GivePodInfo not implemented")
+func (UnimplementedSentryFlowServer) UpdateDeployEvent(context.Context, *Deploy) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeployEvent not implemented")
 }
-func (UnimplementedSentryFlowServer) GiveSvcInfo(context.Context, *Service) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GiveSvcInfo not implemented")
+func (UnimplementedSentryFlowServer) DeleteDeployEvent(context.Context, *Deploy) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDeployEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) AddPodEvent(context.Context, *Pod) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPodEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) UpdatePodEvent(context.Context, *Pod) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePodEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) DeletePodEvent(context.Context, *Pod) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePodEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) AddSvcEvent(context.Context, *Service) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddSvcEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) UpdateSvcEvent(context.Context, *Service) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSvcEvent not implemented")
+}
+func (UnimplementedSentryFlowServer) DeleteSvcEvent(context.Context, *Service) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSvcEvent not implemented")
 }
 func (UnimplementedSentryFlowServer) testEmbeddedByValue() {}
 
@@ -244,56 +340,164 @@ func _SentryFlow_GiveEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GiveEnvoyMetricsServer = grpc.ClientStreamingServer[EnvoyMetrics, Response]
 
-func _SentryFlow_GiveDeployInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SentryFlow_AddDeployEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Deploy)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SentryFlowServer).GiveDeployInfo(ctx, in)
+		return srv.(SentryFlowServer).AddDeployEvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SentryFlow_GiveDeployInfo_FullMethodName,
+		FullMethod: SentryFlow_AddDeployEvent_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SentryFlowServer).GiveDeployInfo(ctx, req.(*Deploy))
+		return srv.(SentryFlowServer).AddDeployEvent(ctx, req.(*Deploy))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SentryFlow_GivePodInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SentryFlow_UpdateDeployEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Deploy)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).UpdateDeployEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_UpdateDeployEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).UpdateDeployEvent(ctx, req.(*Deploy))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_DeleteDeployEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Deploy)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).DeleteDeployEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_DeleteDeployEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).DeleteDeployEvent(ctx, req.(*Deploy))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_AddPodEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Pod)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SentryFlowServer).GivePodInfo(ctx, in)
+		return srv.(SentryFlowServer).AddPodEvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SentryFlow_GivePodInfo_FullMethodName,
+		FullMethod: SentryFlow_AddPodEvent_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SentryFlowServer).GivePodInfo(ctx, req.(*Pod))
+		return srv.(SentryFlowServer).AddPodEvent(ctx, req.(*Pod))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SentryFlow_GiveSvcInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SentryFlow_UpdatePodEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Pod)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).UpdatePodEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_UpdatePodEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).UpdatePodEvent(ctx, req.(*Pod))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_DeletePodEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Pod)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).DeletePodEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_DeletePodEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).DeletePodEvent(ctx, req.(*Pod))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_AddSvcEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Service)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SentryFlowServer).GiveSvcInfo(ctx, in)
+		return srv.(SentryFlowServer).AddSvcEvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SentryFlow_GiveSvcInfo_FullMethodName,
+		FullMethod: SentryFlow_AddSvcEvent_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SentryFlowServer).GiveSvcInfo(ctx, req.(*Service))
+		return srv.(SentryFlowServer).AddSvcEvent(ctx, req.(*Service))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_UpdateSvcEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Service)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).UpdateSvcEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_UpdateSvcEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).UpdateSvcEvent(ctx, req.(*Service))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SentryFlow_DeleteSvcEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Service)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SentryFlowServer).DeleteSvcEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SentryFlow_DeleteSvcEvent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SentryFlowServer).DeleteSvcEvent(ctx, req.(*Service))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -306,16 +510,40 @@ var SentryFlow_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*SentryFlowServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GiveDeployInfo",
-			Handler:    _SentryFlow_GiveDeployInfo_Handler,
+			MethodName: "AddDeployEvent",
+			Handler:    _SentryFlow_AddDeployEvent_Handler,
 		},
 		{
-			MethodName: "GivePodInfo",
-			Handler:    _SentryFlow_GivePodInfo_Handler,
+			MethodName: "UpdateDeployEvent",
+			Handler:    _SentryFlow_UpdateDeployEvent_Handler,
 		},
 		{
-			MethodName: "GiveSvcInfo",
-			Handler:    _SentryFlow_GiveSvcInfo_Handler,
+			MethodName: "DeleteDeployEvent",
+			Handler:    _SentryFlow_DeleteDeployEvent_Handler,
+		},
+		{
+			MethodName: "AddPodEvent",
+			Handler:    _SentryFlow_AddPodEvent_Handler,
+		},
+		{
+			MethodName: "UpdatePodEvent",
+			Handler:    _SentryFlow_UpdatePodEvent_Handler,
+		},
+		{
+			MethodName: "DeletePodEvent",
+			Handler:    _SentryFlow_DeletePodEvent_Handler,
+		},
+		{
+			MethodName: "AddSvcEvent",
+			Handler:    _SentryFlow_AddSvcEvent_Handler,
+		},
+		{
+			MethodName: "UpdateSvcEvent",
+			Handler:    _SentryFlow_UpdateSvcEvent_Handler,
+		},
+		{
+			MethodName: "DeleteSvcEvent",
+			Handler:    _SentryFlow_DeleteSvcEvent_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

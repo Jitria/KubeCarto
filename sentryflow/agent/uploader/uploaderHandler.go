@@ -60,8 +60,8 @@ func StartUploader(wg *sync.WaitGroup) bool {
 	}
 	UplH.grpcClient = grpcClient
 
-	// Export ClusterInfo
-	go UplH.uploadClusterInfo(wg)
+	// Export ClusterEvent
+	go UplH.uploadClusterEvent(wg)
 	log.Printf("[Uploader] Exporting Cluster information through gRPC services")
 
 	// Export APILogs

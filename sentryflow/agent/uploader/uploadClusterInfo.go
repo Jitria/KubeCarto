@@ -14,13 +14,18 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// UploadClusterInfo Function
-func UploadClusterInfo(clusterEvent *types.ClusterEvent) {
-	UplH.clusterEvents <- clusterEvent
+// UploadClusterEvent Function
+func (upl *UplHandler) UploadClusterEvent(resourceType, action string, obj interface{}) {
+	event := &types.ClusterEvent{
+		ResourceType: resourceType,
+		Action:       action,
+		Object:       obj,
+	}
+	upl.clusterEvents <- event
 }
 
-// uploadClusterInfo Function
-func (upl *UplHandler) uploadClusterInfo(wg *sync.WaitGroup) {
+// uploadClusterEvent Function
+func (upl *UplHandler) uploadClusterEvent(wg *sync.WaitGroup) {
 	wg.Add(1)
 
 	for {
@@ -38,6 +43,7 @@ func (upl *UplHandler) uploadClusterInfo(wg *sync.WaitGroup) {
 	}
 }
 
+// handleClusterEvent Function
 func (upl *UplHandler) handleClusterEvent(evt *types.ClusterEvent) {
 	switch evt.ResourceType {
 	case "Pod":
@@ -52,7 +58,6 @@ func (upl *UplHandler) handleClusterEvent(evt *types.ClusterEvent) {
 }
 
 // == //
-
 func (upl *UplHandler) handlePodEvent(action string, obj interface{}) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
@@ -63,41 +68,54 @@ func (upl *UplHandler) handlePodEvent(action string, obj interface{}) {
 		return
 	}
 
-	// proto.Pod로 변환
 	podProto := convertPodToProto(pod)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if action == "ADD" || action == "UPDATE" {
-		// 없는 Update RPC 대신 AddPodInfo로 동일 처리
-		resp, err := upl.grpcClient.AddPodInfo(ctx, podProto)
+	switch action {
+	case "ADD":
+		resp, err := upl.grpcClient.AddPodEvent(ctx, podProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to AddPodInfo for Pod %s/%s: %v",
+			log.Printf("[Uploader] Failed to AddPodEvent for Pod %s/%s: %v",
 				pod.Namespace, pod.Name, err)
 			return
 		}
-		log.Printf("[Uploader] handlePodEvent: %s Pod %s/%s => Operator resp=%v",
-			action, pod.Namespace, pod.Name, resp)
+		log.Printf("[Uploader] handlePodEvent: ADD Pod %s/%s => Operator resp=%v",
+			pod.Namespace, pod.Name, resp)
 
-	} else if action == "DELETE" {
+	case "UPDATE":
+		resp, err := upl.grpcClient.UpdatePodEvent(ctx, podProto)
+		if err != nil {
+			log.Printf("[Uploader] Failed to UpdatePodEvent for Pod %s/%s: %v",
+				pod.Namespace, pod.Name, err)
+			return
+		}
+		log.Printf("[Uploader] handlePodEvent: UPDATE Pod %s/%s => Operator resp=%v",
+			pod.Namespace, pod.Name, resp)
+
+	case "DELETE":
 		// Delete RPC
 		delPodProto := &protobuf.Pod{
 			Cluster:   podProto.Cluster,
 			Namespace: pod.Namespace,
 			Name:      pod.Name,
 		}
-		resp, err := upl.grpcClient.DeletePodInfo(ctx, delPodProto)
+		resp, err := upl.grpcClient.DeletePodEvent(ctx, delPodProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to DeletePodInfo for Pod %s/%s: %v",
+			log.Printf("[Uploader] Failed to DeletePodEvent for Pod %s/%s: %v",
 				pod.Namespace, pod.Name, err)
 			return
 		}
 		log.Printf("[Uploader] handlePodEvent: DELETE Pod %s/%s => Operator resp=%v",
 			pod.Namespace, pod.Name, resp)
+
+	default:
+		log.Printf("[Uploader] handlePodEvent: Unrecognized action=%s for Pod %s/%s",
+			action, pod.Namespace, pod.Name)
 	}
 }
 
+// == Service == //
 func (upl *UplHandler) handleServiceEvent(action string, obj interface{}) {
 	svc, ok := obj.(*corev1.Service)
 	if !ok {
@@ -112,33 +130,49 @@ func (upl *UplHandler) handleServiceEvent(action string, obj interface{}) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if action == "ADD" || action == "UPDATE" {
-		resp, err := upl.grpcClient.AddSvcInfo(ctx, svcProto)
+	switch action {
+	case "ADD":
+		resp, err := upl.grpcClient.AddSvcEvent(ctx, svcProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to AddSvcInfo for Service %s/%s: %v",
+			log.Printf("[Uploader] Failed to AddSvcEvent for Service %s/%s: %v",
 				svc.Namespace, svc.Name, err)
 			return
 		}
-		log.Printf("[Uploader] handleServiceEvent: %s Service %s/%s => Operator resp=%v",
-			action, svc.Namespace, svc.Name, resp)
+		log.Printf("[Uploader] handleServiceEvent: ADD Service %s/%s => Operator resp=%v",
+			svc.Namespace, svc.Name, resp)
 
-	} else if action == "DELETE" {
+	case "UPDATE":
+		resp, err := upl.grpcClient.UpdateSvcEvent(ctx, svcProto)
+		if err != nil {
+			log.Printf("[Uploader] Failed to UpdateSvcEvent for Service %s/%s: %v",
+				svc.Namespace, svc.Name, err)
+			return
+		}
+		log.Printf("[Uploader] handleServiceEvent: UPDATE Service %s/%s => Operator resp=%v",
+			svc.Namespace, svc.Name, resp)
+
+	case "DELETE":
 		delSvcProto := &protobuf.Service{
 			Cluster:   svcProto.Cluster,
 			Namespace: svc.Namespace,
 			Name:      svc.Name,
 		}
-		resp, err := upl.grpcClient.DeleteSvcInfo(ctx, delSvcProto)
+		resp, err := upl.grpcClient.DeleteSvcEvent(ctx, delSvcProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to DeleteSvcInfo for Service %s/%s: %v",
+			log.Printf("[Uploader] Failed to DeleteSvcEvent for Service %s/%s: %v",
 				svc.Namespace, svc.Name, err)
 			return
 		}
 		log.Printf("[Uploader] handleServiceEvent: DELETE Service %s/%s => Operator resp=%v",
 			svc.Namespace, svc.Name, resp)
+
+	default:
+		log.Printf("[Uploader] handleServiceEvent: Unrecognized action=%s for Service %s/%s",
+			action, svc.Namespace, svc.Name)
 	}
 }
 
+// == Deployment == //
 func (upl *UplHandler) handleDeployEvent(action string, obj interface{}) {
 	dep, ok := obj.(*appsv1.Deployment)
 	if !ok {
@@ -153,33 +187,49 @@ func (upl *UplHandler) handleDeployEvent(action string, obj interface{}) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if action == "ADD" || action == "UPDATE" {
-		resp, err := upl.grpcClient.AddDeployInfo(ctx, depProto)
+	switch action {
+	case "ADD":
+		resp, err := upl.grpcClient.AddDeployEvent(ctx, depProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to AddDeployInfo for Deployment %s/%s: %v",
+			log.Printf("[Uploader] Failed to AddDeployEvent for Deployment %s/%s: %v",
 				dep.Namespace, dep.Name, err)
 			return
 		}
-		log.Printf("[Uploader] handleDeployEvent: %s Deploy %s/%s => Operator resp=%v",
-			action, dep.Namespace, dep.Name, resp)
+		log.Printf("[Uploader] handleDeployEvent: ADD Deploy %s/%s => Operator resp=%v",
+			dep.Namespace, dep.Name, resp)
 
-	} else if action == "DELETE" {
+	case "UPDATE":
+		resp, err := upl.grpcClient.UpdateDeployEvent(ctx, depProto)
+		if err != nil {
+			log.Printf("[Uploader] Failed to UpdateDeployEvent for Deployment %s/%s: %v",
+				dep.Namespace, dep.Name, err)
+			return
+		}
+		log.Printf("[Uploader] handleDeployEvent: UPDATE Deploy %s/%s => Operator resp=%v",
+			dep.Namespace, dep.Name, resp)
+
+	case "DELETE":
 		delDepProto := &protobuf.Deploy{
 			Cluster:   depProto.Cluster,
 			Namespace: dep.Namespace,
 			Name:      dep.Name,
 		}
-		resp, err := upl.grpcClient.DeleteDeployInfo(ctx, delDepProto)
+		resp, err := upl.grpcClient.DeleteDeployEvent(ctx, delDepProto)
 		if err != nil {
-			log.Printf("[Uploader] Failed to DeleteDeployInfo for Deploy %s/%s: %v",
+			log.Printf("[Uploader] Failed to DeleteDeployEvent for Deploy %s/%s: %v",
 				dep.Namespace, dep.Name, err)
 			return
 		}
 		log.Printf("[Uploader] handleDeployEvent: DELETE Deploy %s/%s => Operator resp=%v",
 			dep.Namespace, dep.Name, resp)
+
+	default:
+		log.Printf("[Uploader] handleDeployEvent: Unrecognized action=%s for Deploy %s/%s",
+			action, dep.Namespace, dep.Name)
 	}
 }
 
+// == Convert Funcs (Pod/Service/Deploy) are the same as before == //
 func convertPodToProto(pod *corev1.Pod) *protobuf.Pod {
 	return &protobuf.Pod{
 		Cluster:           config.GlobalConfig.ClusterName,
@@ -228,3 +278,5 @@ func convertDeploymentToProto(dep *appsv1.Deployment) *protobuf.Deploy {
 		CreationTimestamp: dep.CreationTimestamp.String(),
 	}
 }
+
+// == //
