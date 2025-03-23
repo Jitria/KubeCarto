@@ -21,6 +21,9 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	SentryFlow_GetAPILog_FullMethodName         = "/protobuf.SentryFlow/GetAPILog"
 	SentryFlow_GetEnvoyMetrics_FullMethodName   = "/protobuf.SentryFlow/GetEnvoyMetrics"
+	SentryFlow_GetDeploy_FullMethodName         = "/protobuf.SentryFlow/GetDeploy"
+	SentryFlow_GetPod_FullMethodName            = "/protobuf.SentryFlow/GetPod"
+	SentryFlow_GetService_FullMethodName        = "/protobuf.SentryFlow/GetService"
 	SentryFlow_GiveAPILog_FullMethodName        = "/protobuf.SentryFlow/GiveAPILog"
 	SentryFlow_GiveEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GiveEnvoyMetrics"
 	SentryFlow_AddDeployEvent_FullMethodName    = "/protobuf.SentryFlow/AddDeployEvent"
@@ -38,9 +41,12 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SentryFlowClient interface {
-	// enovy -> agent
+	// operator -> client
 	GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error)
 	GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error)
+	GetDeploy(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error)
+	GetPod(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error)
+	GetService(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error)
 	// agent -> operator
 	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
 	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
@@ -101,9 +107,66 @@ func (c *sentryFlowClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GetEnvoyMetricsClient = grpc.ServerStreamingClient[EnvoyMetrics]
 
+func (c *sentryFlowClient) GetDeploy(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[2], SentryFlow_GetDeploy_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Deploy]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetDeployClient = grpc.ServerStreamingClient[Deploy]
+
+func (c *sentryFlowClient) GetPod(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[3], SentryFlow_GetPod_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Pod]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetPodClient = grpc.ServerStreamingClient[Pod]
+
+func (c *sentryFlowClient) GetService(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[4], SentryFlow_GetService_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Service]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetServiceClient = grpc.ServerStreamingClient[Service]
+
 func (c *sentryFlowClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[2], SentryFlow_GiveAPILog_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[5], SentryFlow_GiveAPILog_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +179,7 @@ type SentryFlow_GiveAPILogClient = grpc.ClientStreamingClient[APILog, Response]
 
 func (c *sentryFlowClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[3], SentryFlow_GiveEnvoyMetrics_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[6], SentryFlow_GiveEnvoyMetrics_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,9 +284,12 @@ func (c *sentryFlowClient) DeleteSvcEvent(ctx context.Context, in *Service, opts
 // All implementations should embed UnimplementedSentryFlowServer
 // for forward compatibility.
 type SentryFlowServer interface {
-	// enovy -> agent
+	// operator -> client
 	GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error
 	GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error
+	GetDeploy(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error
+	GetPod(*ClientInfo, grpc.ServerStreamingServer[Pod]) error
+	GetService(*ClientInfo, grpc.ServerStreamingServer[Service]) error
 	// agent -> operator
 	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
 	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
@@ -250,6 +316,15 @@ func (UnimplementedSentryFlowServer) GetAPILog(*ClientInfo, grpc.ServerStreaming
 }
 func (UnimplementedSentryFlowServer) GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error {
 	return status.Errorf(codes.Unimplemented, "method GetEnvoyMetrics not implemented")
+}
+func (UnimplementedSentryFlowServer) GetDeploy(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeploy not implemented")
+}
+func (UnimplementedSentryFlowServer) GetPod(*ClientInfo, grpc.ServerStreamingServer[Pod]) error {
+	return status.Errorf(codes.Unimplemented, "method GetPod not implemented")
+}
+func (UnimplementedSentryFlowServer) GetService(*ClientInfo, grpc.ServerStreamingServer[Service]) error {
+	return status.Errorf(codes.Unimplemented, "method GetService not implemented")
 }
 func (UnimplementedSentryFlowServer) GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveAPILog not implemented")
@@ -325,6 +400,39 @@ func _SentryFlow_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStre
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GetEnvoyMetricsServer = grpc.ServerStreamingServer[EnvoyMetrics]
+
+func _SentryFlow_GetDeploy_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).GetDeploy(m, &grpc.GenericServerStream[ClientInfo, Deploy]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetDeployServer = grpc.ServerStreamingServer[Deploy]
+
+func _SentryFlow_GetPod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).GetPod(m, &grpc.GenericServerStream[ClientInfo, Pod]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetPodServer = grpc.ServerStreamingServer[Pod]
+
+func _SentryFlow_GetService_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).GetService(m, &grpc.GenericServerStream[ClientInfo, Service]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_GetServiceServer = grpc.ServerStreamingServer[Service]
 
 func _SentryFlow_GiveAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(SentryFlowServer).GiveAPILog(&grpc.GenericServerStream[APILog, Response]{ServerStream: stream})
@@ -555,6 +663,21 @@ var SentryFlow_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetEnvoyMetrics",
 			Handler:       _SentryFlow_GetEnvoyMetrics_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetDeploy",
+			Handler:       _SentryFlow_GetDeploy_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetPod",
+			Handler:       _SentryFlow_GetPod_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetService",
+			Handler:       _SentryFlow_GetService_Handler,
 			ServerStreams: true,
 		},
 		{
