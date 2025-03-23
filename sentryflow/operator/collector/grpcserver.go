@@ -3,46 +3,153 @@
 package collector
 
 import (
+	"Operator/exporter"
+	"context"
 	"fmt"
 	"io"
+	"log"
+	"sync"
 
 	"github.com/Jitria/SentryFlow/protobuf"
 )
 
-// 먼저 gRPC 서버 생성 후 서비스 등록 시에
-// protobuf.RegisterSentryFlowServer(gRPCServer, ColH)
-// 를 호출하여 ColHandler가 해당 RPC를 처리하도록 등록합니다.
+//////////////////
+// ClusterEvent //
+//////////////////
 
-// GiveAPILog implements the server-side streaming RPC for APILog.
+// Deploy Function
+func (cs *ColService) AddDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
+	log.Printf("[Operator] AddDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
+
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) UpdateDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
+	log.Printf("[Operator] UpdateDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) DeleteDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
+	log.Printf("[Operator] DeleteDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+// Pod Function
+func (cs *ColService) AddPodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
+	log.Printf("[Operator] AddPodEvent: got Pod %s/%s cluster=%s IP=%s",
+		pod.Namespace, pod.Name, pod.Cluster, pod.PodIP)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) UpdatePodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
+	log.Printf("[Operator] UpdatePodEvent: got Pod %s/%s cluster=%s IP=%s",
+		pod.Namespace, pod.Name, pod.Cluster, pod.PodIP)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) DeletePodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
+	log.Printf("[Operator] DeletePodEvent: got Pod %s/%s cluster=%s",
+		pod.Namespace, pod.Name, pod.Cluster)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+// Service Function
+func (cs *ColService) AddSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
+	log.Printf("[Operator] AddSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
+		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) UpdateSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
+	log.Printf("[Operator] UpdateSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
+		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+func (cs *ColService) DeleteSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
+	log.Printf("[Operator] DeleteSvcEvent: got Service %s/%s cluster=%s",
+		svc.Namespace, svc.Name, svc.Cluster)
+	return &protobuf.Response{Msg: 0}, nil
+}
+
+////////////
+// APILog //
+////////////
+
+// GiveAPILog Function
 func (cs *ColService) GiveAPILog(stream protobuf.SentryFlow_GiveAPILogServer) error {
 	for {
 		// Receive APILog from stream.
 		apiLog, err := stream.Recv()
 		if err == io.EOF {
-			// 클라이언트에서 전송 종료시 응답 전송
 			return stream.SendAndClose(&protobuf.Response{Msg: 0})
 		}
 		if err != nil {
 			return fmt.Errorf("GiveAPILog recv error: %v", err)
 		}
-		// 채널에 넣어 비동기로 처리 (ProcessAPILogs에서 처리)
 		ColH.apiLogChan <- apiLog
 	}
 }
 
-// GiveEnvoyMetrics implements the server-side streaming RPC for EnvoyMetrics.
+// ProcessAPILogs Function
+func ProcessAPILogs(wg *sync.WaitGroup) {
+	wg.Add(1)
+
+	for {
+		select {
+		case logType, ok := <-ColH.apiLogChan:
+			if !ok {
+				log.Print("[LogProcessor] Failed to process an API log")
+				continue
+			}
+
+			go exporter.InsertAPILog(logType.(*protobuf.APILog))
+
+		case <-ColH.stopChan:
+			wg.Done()
+			return
+		}
+	}
+}
+
+/////////////////
+// EnovyMetric //
+/////////////////
+
+// GiveEnvoyMetrics Function
 func (cs *ColService) GiveEnvoyMetrics(stream protobuf.SentryFlow_GiveEnvoyMetricsServer) error {
 	for {
 		// Receive EnvoyMetrics from stream.
 		envoyMetrics, err := stream.Recv()
 		if err == io.EOF {
-			// 전송 종료 시 응답 전송
 			return stream.SendAndClose(&protobuf.Response{Msg: 0})
 		}
 		if err != nil {
 			return fmt.Errorf("GiveEnvoyMetrics recv error: %v", err)
 		}
-		// metricsChan으로 보내 ProcessEnvoyMetrics에서 처리하도록 함
 		ColH.metricsChan <- envoyMetrics
 	}
 }
+
+// ProcessEnvoyMetrics Function
+func ProcessEnvoyMetrics(wg *sync.WaitGroup) {
+	wg.Add(1)
+
+	for {
+		select {
+		case logType, ok := <-ColH.metricsChan:
+			if !ok {
+				log.Print("[LogProcessor] Failed to process Envoy metrics")
+				continue
+			}
+
+			go exporter.InsertEnvoyMetrics(logType.(*protobuf.EnvoyMetrics))
+
+		case <-ColH.stopChan:
+			wg.Done()
+			return
+		}
+	}
+}
+
+// == //

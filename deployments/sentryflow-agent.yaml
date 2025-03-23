@@ -22,6 +22,9 @@ spec:
       containers:
       - name: sentryflow-agent
         image: boanlab/sentryflow-agent:v0.1
+        env:
+        - name: CLUSTER_NAME
+          value: "cluster1"
         ports:
         - name: collector-grpc
           protocol: TCP

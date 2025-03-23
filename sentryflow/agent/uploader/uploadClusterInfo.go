@@ -58,6 +58,8 @@ func (upl *UplHandler) handleClusterEvent(evt *types.ClusterEvent) {
 }
 
 // == //
+
+// handlePodEvent Function
 func (upl *UplHandler) handlePodEvent(action string, obj interface{}) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
@@ -94,7 +96,6 @@ func (upl *UplHandler) handlePodEvent(action string, obj interface{}) {
 			pod.Namespace, pod.Name, resp)
 
 	case "DELETE":
-		// Delete RPC
 		delPodProto := &protobuf.Pod{
 			Cluster:   podProto.Cluster,
 			Namespace: pod.Namespace,
@@ -115,7 +116,7 @@ func (upl *UplHandler) handlePodEvent(action string, obj interface{}) {
 	}
 }
 
-// == Service == //
+// handleServiceEvent Function
 func (upl *UplHandler) handleServiceEvent(action string, obj interface{}) {
 	svc, ok := obj.(*corev1.Service)
 	if !ok {
@@ -172,7 +173,7 @@ func (upl *UplHandler) handleServiceEvent(action string, obj interface{}) {
 	}
 }
 
-// == Deployment == //
+// handleDeployEvent Function
 func (upl *UplHandler) handleDeployEvent(action string, obj interface{}) {
 	dep, ok := obj.(*appsv1.Deployment)
 	if !ok {
@@ -229,7 +230,9 @@ func (upl *UplHandler) handleDeployEvent(action string, obj interface{}) {
 	}
 }
 
-// == Convert Funcs (Pod/Service/Deploy) are the same as before == //
+// == //
+
+// convertPodToProto Function
 func convertPodToProto(pod *corev1.Pod) *protobuf.Pod {
 	return &protobuf.Pod{
 		Cluster:           config.GlobalConfig.ClusterName,
@@ -243,6 +246,7 @@ func convertPodToProto(pod *corev1.Pod) *protobuf.Pod {
 	}
 }
 
+// convertServiceToProto Function
 func convertServiceToProto(svc *corev1.Service) *protobuf.Service {
 	var protoPorts []*protobuf.Port
 	for _, p := range svc.Spec.Ports {
@@ -263,6 +267,7 @@ func convertServiceToProto(svc *corev1.Service) *protobuf.Service {
 	}
 }
 
+// convertDeploymentToProto Function
 func convertDeploymentToProto(dep *appsv1.Deployment) *protobuf.Deploy {
 	replicas := int32(0)
 	if dep.Spec.Replicas != nil {

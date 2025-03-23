@@ -19,6 +19,8 @@ type AgentConfig struct {
 	OperatorAddr string // IP address to use for Operator gRPC
 	OperatorPort string // Port to use for Operator gRPC
 
+	ClusterName string // Name of the cluster
+
 	PatchingNamespaces           bool // Enable/Disable patching namespaces with 'istio-injection'
 	RestartingPatchedDeployments bool // Enable/Disable restarting deployments after patching
 
@@ -44,6 +46,8 @@ const (
 	OperatorAddr string = "operatorAddr"
 	OperatorPort string = "operatorPort"
 
+	ClusterName string = "clusterName"
+
 	PatchingNamespaces           string = "patchingNamespaces"
 	RestartingPatchedDeployments string = "restartingPatchedDeployments"
 
@@ -59,6 +63,8 @@ func readCmdLineParams() {
 
 	operatorAddrStr := flag.String(OperatorAddr, "sentryflow-operator.sentryflow.svc.cluster.local", "Address for Operator gRPC")
 	operatorPortStr := flag.String(OperatorPort, "5317", "Port for Operator gRPC")
+
+	clusterNameStr := flag.String(ClusterName, "", "Name of the Kubernetes cluster")
 
 	patchingNamespacesB := flag.Bool(PatchingNamespaces, false, "Enable patching 'istio-injection' to all namespaces")
 	restartingPatchedDeploymentsB := flag.Bool(RestartingPatchedDeployments, false, "Enable restarting the deployments in all patched namespaces")
@@ -83,6 +89,8 @@ func readCmdLineParams() {
 	viper.SetDefault(OperatorAddr, *operatorAddrStr)
 	viper.SetDefault(OperatorPort, *operatorPortStr)
 
+	viper.SetDefault(ClusterName, *clusterNameStr)
+
 	viper.SetDefault(PatchingNamespaces, *patchingNamespacesB)
 	viper.SetDefault(RestartingPatchedDeployments, *restartingPatchedDeploymentsB)
 
@@ -105,6 +113,8 @@ func LoadConfig() error {
 
 	GlobalConfig.OperatorAddr = viper.GetString(OperatorAddr)
 	GlobalConfig.OperatorPort = viper.GetString(OperatorPort)
+
+	GlobalConfig.ClusterName = viper.GetString(ClusterName)
 
 	GlobalConfig.PatchingNamespaces = viper.GetBool(PatchingNamespaces)
 	GlobalConfig.RestartingPatchedDeployments = viper.GetBool(RestartingPatchedDeployments)

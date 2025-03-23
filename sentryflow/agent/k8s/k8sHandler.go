@@ -129,7 +129,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						if ip != "" {
 							k8s.podMap[ip] = pod
 							log.Printf("[Informer:Pod] ADDED Pod %s/%s, IP=%s", pod.Namespace, pod.Name, ip)
-							go uploader.UplH.UploadClusterInfo("Pod", "ADD", pod)
+							go uploader.UplH.UploadClusterEvent("Pod", "ADD", pod)
 						}
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
@@ -138,7 +138,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						if ip != "" {
 							k8s.podMap[ip] = newPod
 							log.Printf("[Informer:Pod] UPDATED Pod %s/%s, IP=%s", newPod.Namespace, newPod.Name, ip)
-							go uploader.UplH.UploadClusterInfo("Pod", "UPDATE", newPod)
+							go uploader.UplH.UploadClusterEvent("Pod", "UPDATE", newPod)
 						}
 					},
 					DeleteFunc: func(obj interface{}) {
@@ -147,7 +147,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						if ip != "" {
 							delete(k8s.podMap, ip)
 							log.Printf("[Informer:Pod] DELETED Pod %s/%s, IP=%s", pod.Namespace, pod.Name, ip)
-							go uploader.UplH.UploadClusterInfo("Pod", "DELETE", pod)
+							go uploader.UplH.UploadClusterEvent("Pod", "DELETE", pod)
 						}
 					},
 				},
@@ -168,7 +168,7 @@ func (k8s *KubernetesHandler) initInformers() {
 						svc := obj.(*corev1.Service)
 						k8s.addOrUpdateServiceIPs(svc)
 						log.Printf("[Informer:Service] ADDED Service %s/%s", svc.Namespace, svc.Name)
-						go uploader.UplH.UploadClusterInfo("Service", "ADD", svc)
+						go uploader.UplH.UploadClusterEvent("Service", "ADD", svc)
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
 						oldSvc := oldObj.(*corev1.Service)
@@ -176,13 +176,13 @@ func (k8s *KubernetesHandler) initInformers() {
 						k8s.removeServiceIPs(oldSvc)
 						k8s.addOrUpdateServiceIPs(newSvc)
 						log.Printf("[Informer:Service] UPDATED Service %s/%s", newSvc.Namespace, newSvc.Name)
-						go uploader.UplH.UploadClusterInfo("Service", "UPDATE", newSvc)
+						go uploader.UplH.UploadClusterEvent("Service", "UPDATE", newSvc)
 					},
 					DeleteFunc: func(obj interface{}) {
 						svc := obj.(*corev1.Service)
 						k8s.removeServiceIPs(svc)
 						log.Printf("[Informer:Service] DELETED Service %s/%s", svc.Namespace, svc.Name)
-						go uploader.UplH.UploadClusterInfo("Service", "DELETE", svc)
+						go uploader.UplH.UploadClusterEvent("Service", "DELETE", svc)
 					},
 				},
 			},
@@ -203,21 +203,21 @@ func (k8s *KubernetesHandler) initInformers() {
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						k8s.deployMap[key] = dep
 						log.Printf("[Informer:Deploy] ADDED Deployment %s", key)
-						go uploader.UplH.UploadClusterInfo("Deploy", "ADD", dep)
+						go uploader.UplH.UploadClusterEvent("Deploy", "ADD", dep)
 					},
 					UpdateFunc: func(oldObj, newObj interface{}) {
 						dep := newObj.(*appsv1.Deployment)
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						k8s.deployMap[key] = dep
 						log.Printf("[Informer:Deploy] UPDATED Deployment %s", key)
-						go uploader.UplH.UploadClusterInfo("Deploy", "UPDATE", dep)
+						go uploader.UplH.UploadClusterEvent("Deploy", "UPDATE", dep)
 					},
 					DeleteFunc: func(obj interface{}) {
 						dep := obj.(*appsv1.Deployment)
 						key := fmt.Sprintf("%s/%s", dep.Namespace, dep.Name)
 						delete(k8s.deployMap, key)
 						log.Printf("[Informer:Deploy] DELETED Deployment %s", key)
-						go uploader.UplH.UploadClusterInfo("Deploy", "DELETE", dep)
+						go uploader.UplH.UploadClusterEvent("Deploy", "DELETE", dep)
 					},
 				},
 			},

@@ -3,8 +3,6 @@
 package collector
 
 import (
-	"Operator/exporter"
-
 	"github.com/Jitria/SentryFlow/protobuf"
 
 	"fmt"
@@ -114,55 +112,3 @@ func StopCollector() bool {
 }
 
 // == //
-
-// ProcessAPILogs Function
-func ProcessAPILogs(wg *sync.WaitGroup) {
-	wg.Add(1)
-
-	for {
-		select {
-		case logType, ok := <-ColH.apiLogChan:
-			if !ok {
-				log.Print("[LogProcessor] Failed to process an API log")
-				continue
-			}
-
-			go exporter.InsertAPILog(logType.(*protobuf.APILog))
-
-		case <-ColH.stopChan:
-			wg.Done()
-			return
-		}
-	}
-}
-
-// InsertAPILog Function
-func InsertAPILog(data interface{}) {
-	ColH.apiLogChan <- data
-}
-
-// ProcessEnvoyMetrics Function
-func ProcessEnvoyMetrics(wg *sync.WaitGroup) {
-	wg.Add(1)
-
-	for {
-		select {
-		case logType, ok := <-ColH.metricsChan:
-			if !ok {
-				log.Print("[LogProcessor] Failed to process Envoy metrics")
-				continue
-			}
-
-			go exporter.InsertEnvoyMetrics(logType.(*protobuf.EnvoyMetrics))
-
-		case <-ColH.stopChan:
-			wg.Done()
-			return
-		}
-	}
-}
-
-// InsertMetrics Function
-func InsertMetrics(data interface{}) {
-	ColH.metricsChan <- data
-}
