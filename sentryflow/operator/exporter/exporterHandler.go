@@ -34,11 +34,17 @@ type ExpHandler struct {
 
 	apiLogExporters       []*apiLogStreamInform
 	envoyMetricsExporters []*envoyMetricsStreamInform
+	deployExporters       []*deployStreamInform
+	podExporters          []*podStreamInform
+	svcExporters          []*svcStreamInform
 
 	exporterLock sync.Mutex
 
 	exporterAPILogs chan *protobuf.APILog
 	exporterMetrics chan *protobuf.EnvoyMetrics
+	exporterDeploy  chan *protobuf.Deploy
+	exporterPod     chan *protobuf.Pod
+	exporterSvc     chan *protobuf.Service
 
 	statsPerLabelLock sync.RWMutex
 
@@ -59,11 +65,17 @@ func NewExporterHandler() *ExpHandler {
 
 		apiLogExporters:       make([]*apiLogStreamInform, 0),
 		envoyMetricsExporters: make([]*envoyMetricsStreamInform, 0),
+		deployExporters:       make([]*deployStreamInform, 0),
+		podExporters:          make([]*podStreamInform, 0),
+		svcExporters:          make([]*svcStreamInform, 0),
 
 		exporterLock: sync.Mutex{},
 
 		exporterAPILogs: make(chan *protobuf.APILog),
 		exporterMetrics: make(chan *protobuf.EnvoyMetrics),
+		exporterDeploy:  make(chan *protobuf.Deploy),
+		exporterPod:     make(chan *protobuf.Pod),
+		exporterSvc:     make(chan *protobuf.Service),
 
 		statsPerLabelLock: sync.RWMutex{},
 
@@ -103,6 +115,11 @@ func StartExporter(wg *sync.WaitGroup) bool {
 
 	log.Printf("[Exporter] Serving Exporter gRPC services (%s)", exporterService)
 
+	// Export ClusterInfo
+	go ExpH.exportClusterHandler(wg)
+
+	log.Printf("[Exporter] Exporting Cluster information through gRPC services")
+
 	// Export APILogs
 	go ExpH.exportAPILogs(wg)
 
@@ -118,6 +135,9 @@ func StartExporter(wg *sync.WaitGroup) bool {
 
 // StopExporter Function
 func StopExporter() bool {
+	// One for exportClusterHandler
+	ExpH.stopChan <- struct{}{}
+
 	// One for exportAPILogs
 	ExpH.stopChan <- struct{}{}
 

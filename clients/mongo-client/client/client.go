@@ -18,6 +18,10 @@ type Feeder struct {
 	logStream         pb.SentryFlow_GetAPILogClient
 	envoyMetricStream pb.SentryFlow_GetEnvoyMetricsClient
 
+	deployStream  pb.SentryFlow_GetDeployClient
+	podStream     pb.SentryFlow_GetPodClient
+	serviceStream pb.SentryFlow_GetServiceClient
+
 	dbHandler mongodb.DBHandler
 
 	Done chan struct{}
@@ -49,6 +53,24 @@ func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg str
 
 		fd.envoyMetricStream = emStream
 	}
+
+	deployStr, err := client.GetDeploy(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get Deploy stream: %v", err)
+	}
+	fd.deployStream = deployStr
+
+	podStr, err := client.GetPod(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get Pod stream: %v", err)
+	}
+	fd.podStream = podStr
+
+	svcStr, err := client.GetService(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get Service stream: %v", err)
+	}
+	fd.serviceStream = svcStr
 
 	// Initialize DB
 	dbHandler, err := mongodb.NewMongoDBHandler(mongoDBAddr)
@@ -96,6 +118,64 @@ func (fd *Feeder) EnvoyMetricsRoutine(metricCfg string) {
 			}
 		case <-fd.Done:
 			return
+		}
+	}
+}
+
+// DeployRoutine Function
+func (fd *Feeder) DeployRoutine(clusterCfg string) {
+	for fd.Running {
+		select {
+		case <-fd.Done:
+			return
+		default:
+			dep, err := fd.deployStream.Recv()
+			if err != nil {
+				log.Printf("[Client] Deploy stream ended: %v", err)
+				return
+			}
+			// MongoDB Insert
+			if err := fd.dbHandler.InsertDeploy(dep); err != nil {
+				log.Printf("[MongoDB] InsertDeploy error: %v", err)
+			}
+		}
+	}
+}
+
+// PodRoutine Function
+func (fd *Feeder) PodRoutine(clusterCfg string) {
+	for fd.Running {
+		select {
+		case <-fd.Done:
+			return
+		default:
+			pod, err := fd.podStream.Recv()
+			if err != nil {
+				log.Printf("[Client] Pod stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.InsertPod(pod); err != nil {
+				log.Printf("[MongoDB] InsertPod error: %v", err)
+			}
+		}
+	}
+}
+
+// ServiceRoutine Function
+func (fd *Feeder) ServiceRoutine(clusterCfg string) {
+	for fd.Running {
+		select {
+		case <-fd.Done:
+			return
+		default:
+			svc, err := fd.serviceStream.Recv()
+			if err != nil {
+				log.Printf("[Client] Service stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.InsertService(svc); err != nil {
+				log.Printf("[MongoDB] InsertService error: %v", err)
+			}
 		}
 	}
 }

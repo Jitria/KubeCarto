@@ -3,7 +3,6 @@
 package exporter
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -31,33 +30,24 @@ type svcStreamInform struct {
 	errChan   chan error
 }
 
-// (2) ExpHandler에 slices와 채널 추가
-// exportCluster.go 안에서만 쓰므로 ExpHandler 구조체를 확장할 수 있음.
-
-func init() {
-	// 보통 init()에서 ExpH 초기화하지만, 이미 다른 init()에 있다면 그쪽 사용
-}
-
-// InsertDeploy: 다른 모듈(collector/...)에서 "새로운 Deploy"가 왔을 때 호출
+// InsertDeploy Function
 func InsertDeploy(dep *protobuf.Deploy) {
-	// channel에 넣거나, 곧바로 ExpH.SendDeploy(dep) 호출 가능
 	ExpH.exporterDeploy <- dep
 }
 
-// InsertPod: ...
+// InsertPod Function
 func InsertPod(pod *protobuf.Pod) {
 	ExpH.exporterPod <- pod
 }
 
-// InsertService: ...
+// InsertService Function
 func InsertService(svc *protobuf.Service) {
 	ExpH.exporterSvc <- svc
 }
 
-// exportClusterHandler 함수: exportAPILogs 와 비슷하게 고루틴 돌며 채널 소비
+// exportClusterHandler Function
 func (exp *ExpHandler) exportClusterHandler(wg *sync.WaitGroup) {
 	wg.Add(1)
-	defer wg.Done()
 
 	for {
 		select {
@@ -75,12 +65,13 @@ func (exp *ExpHandler) exportClusterHandler(wg *sync.WaitGroup) {
 			}
 
 		case <-exp.stopChan:
+			wg.Done()
 			return
 		}
 	}
 }
 
-// (3) SendDeploy: 연결된 모든 deployStreamInform에게 dep 전송
+// SendDeploy Function
 func (exp *ExpHandler) SendDeploy(dep *protobuf.Deploy) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
@@ -95,12 +86,12 @@ func (exp *ExpHandler) SendDeploy(dep *protobuf.Deploy) error {
 		}
 	}
 	if failed > 0 {
-		return errors.New(fmt.Sprintf("SendDeploy failed: %d/%d", failed, total))
+		return fmt.Errorf("SendDeploy failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// (4) SendPod, SendService 도 동일
+// SendPod Function
 func (exp *ExpHandler) SendPod(pod *protobuf.Pod) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
@@ -115,10 +106,12 @@ func (exp *ExpHandler) SendPod(pod *protobuf.Pod) error {
 		}
 	}
 	if failed > 0 {
-		return errors.New(fmt.Sprintf("SendPod failed: %d/%d", failed, total))
+		return fmt.Errorf("SendPod failed: %d/%d", failed, total)
 	}
 	return nil
 }
+
+// SendService Function
 func (exp *ExpHandler) SendService(svc *protobuf.Service) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
@@ -133,13 +126,12 @@ func (exp *ExpHandler) SendService(svc *protobuf.Service) error {
 		}
 	}
 	if failed > 0 {
-		return errors.New(fmt.Sprintf("SendService failed: %d/%d", failed, total))
+		return fmt.Errorf("SendService failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// (5) 실제 gRPC 핸들러: GetDeploy, GetPod, GetService
-// ExpService 구조체에 메서드로 구현
+// GetDeploy Function (for gRPC)
 func (exs *ExpService) GetDeploy(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetDeployServer) error {
 	log.Printf("[Exporter] Client %s (%s) connected to GetDeploy", info.HostName, info.IPAddress)
 
@@ -154,11 +146,10 @@ func (exs *ExpService) GetDeploy(info *protobuf.ClientInfo, stream protobuf.Sent
 	ExpH.deployExporters = append(ExpH.deployExporters, dsi)
 	ExpH.exporterLock.Unlock()
 
-	// 대기: 스트리밍은 서버가 일방적으로 계속 Send
-	// 여기서는 client가 끊을 때까지 blocking
 	return <-dsi.errChan
 }
 
+// GetPod Function (for gRPC)
 func (exs *ExpService) GetPod(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetPodServer) error {
 	log.Printf("[Exporter] Client %s (%s) connected to GetPod", info.HostName, info.IPAddress)
 
@@ -176,6 +167,7 @@ func (exs *ExpService) GetPod(info *protobuf.ClientInfo, stream protobuf.SentryF
 	return <-psi.errChan
 }
 
+// GetService Function (for gRPC)
 func (exs *ExpService) GetService(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetServiceServer) error {
 	log.Printf("[Exporter] Client %s (%s) connected to GetService", info.HostName, info.IPAddress)
 

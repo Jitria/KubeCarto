@@ -15,6 +15,7 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // ========== //
@@ -29,6 +30,7 @@ func main() {
 	}
 
 	// Get arguments
+	clusterCfgPtr := flag.String("clusterCfg", "mongodb", "Where to store cluster resources (none|mongodb)")
 	logCfgPtr := flag.String("logCfg", "mongodb", "Location for storing API logs, {mongodb|none}")
 	metricCfgPtr := flag.String("metricCfg", "mongodb", "Location for storing API and Envoy metrics, {mongodb|none}")
 	metricFilterPtr := flag.String("metricFilter", "envoy", "Filter to select specific API or Envoy metrics to receive, {api|envoy}")
@@ -64,7 +66,7 @@ func main() {
 	addr := fmt.Sprintf("%s:%d", cfg.ServerAddr, cfg.ServerPort)
 
 	// Connect to the gRPC server of SentryFlow
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("[gRPC] Failed to connect: %v", err)
 		return
@@ -87,14 +89,20 @@ func main() {
 
 	if *logCfgPtr != "none" {
 		go logClient.APILogRoutine(*logCfgPtr)
-		fmt.Printf("[APILog] Started to watch API logs\n")
+		log.Printf("[APILog] Started to watch API logs\n")
 	}
 
 	if *metricCfgPtr != "none" {
 		if *metricFilterPtr == "all" || *metricFilterPtr == "envoy" {
 			go logClient.EnvoyMetricsRoutine(*metricCfgPtr)
-			fmt.Printf("[Metric] Started to watch Envoy metrics\n")
+			log.Printf("[Metric] Started to watch Envoy metrics\n")
 		}
+	}
+
+	if *clusterCfgPtr != "none" {
+		go logClient.DeployRoutine(*clusterCfgPtr)
+		go logClient.PodRoutine(*clusterCfgPtr)
+		go logClient.ServiceRoutine(*clusterCfgPtr)
 	}
 
 	signalChan := make(chan os.Signal, 1)

@@ -21,6 +21,9 @@ type DBHandler struct {
 	cancel context.CancelFunc
 
 	database      *mongo.Database
+	deploys       *mongo.Collection
+	pods          *mongo.Collection
+	services      *mongo.Collection
 	apiLogCol     *mongo.Collection
 	evyMetricsCol *mongo.Collection
 }
@@ -54,6 +57,9 @@ func NewMongoDBHandler(mongoDBAddr string) (*DBHandler, error) {
 	dbHandler.database = dbHandler.client.Database("SentryFlow")
 
 	// Create APILogs and Metrics collections
+	dbHandler.deploys = dbHandler.database.Collection("Deploys")
+	dbHandler.pods = dbHandler.database.Collection("Pods")
+	dbHandler.services = dbHandler.database.Collection("Services")
 	dbHandler.apiLogCol = dbHandler.database.Collection("APILogs")
 	dbHandler.evyMetricsCol = dbHandler.database.Collection("EnvoyMetrics")
 
@@ -86,4 +92,22 @@ func (handler *DBHandler) InsertEnvoyMetrics(data *protobuf.EnvoyMetrics) error 
 	}
 
 	return nil
+}
+
+// InsertDeploy Function
+func (handler *DBHandler) InsertDeploy(dep *protobuf.Deploy) error {
+	_, err := handler.database.Collection("Deploys").InsertOne(context.Background(), dep)
+	return err
+}
+
+// InsertPod Function
+func (handler *DBHandler) InsertPod(pod *protobuf.Pod) error {
+	_, err := handler.database.Collection("Pods").InsertOne(context.Background(), pod)
+	return err
+}
+
+// InsertService Function
+func (handler *DBHandler) InsertService(svc *protobuf.Service) error {
+	_, err := handler.database.Collection("Services").InsertOne(context.Background(), svc)
+	return err
 }

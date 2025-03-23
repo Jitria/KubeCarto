@@ -21,6 +21,7 @@ import (
 func (cs *ColService) AddDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
 	log.Printf("[Operator] AddDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
 
+	exporter.InsertDeploy(dep)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
@@ -38,6 +39,8 @@ func (cs *ColService) DeleteDeployEvent(ctx context.Context, dep *protobuf.Deplo
 func (cs *ColService) AddPodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
 	log.Printf("[Operator] AddPodEvent: got Pod %s/%s cluster=%s IP=%s",
 		pod.Namespace, pod.Name, pod.Cluster, pod.PodIP)
+
+	exporter.InsertPod(pod)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
@@ -57,6 +60,8 @@ func (cs *ColService) DeletePodEvent(ctx context.Context, pod *protobuf.Pod) (*p
 func (cs *ColService) AddSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
 	log.Printf("[Operator] AddSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
 		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
+
+	exporter.InsertService(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
