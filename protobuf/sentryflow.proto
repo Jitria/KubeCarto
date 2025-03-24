@@ -83,6 +83,8 @@ message Service {
   string clusterIP = 5;
   repeated Port ports = 6;
   map<string, string> labels = 7;
+  repeated string externalIPs = 8;
+  repeated string loadBalancerIPs = 9;
 }
 
 message Port {
