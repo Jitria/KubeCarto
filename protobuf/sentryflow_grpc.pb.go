@@ -19,22 +19,28 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SentryFlow_GetAPILog_FullMethodName         = "/protobuf.SentryFlow/GetAPILog"
-	SentryFlow_GetEnvoyMetrics_FullMethodName   = "/protobuf.SentryFlow/GetEnvoyMetrics"
-	SentryFlow_GetDeploy_FullMethodName         = "/protobuf.SentryFlow/GetDeploy"
-	SentryFlow_GetPod_FullMethodName            = "/protobuf.SentryFlow/GetPod"
-	SentryFlow_GetService_FullMethodName        = "/protobuf.SentryFlow/GetService"
-	SentryFlow_GiveAPILog_FullMethodName        = "/protobuf.SentryFlow/GiveAPILog"
-	SentryFlow_GiveEnvoyMetrics_FullMethodName  = "/protobuf.SentryFlow/GiveEnvoyMetrics"
-	SentryFlow_AddDeployEvent_FullMethodName    = "/protobuf.SentryFlow/AddDeployEvent"
-	SentryFlow_UpdateDeployEvent_FullMethodName = "/protobuf.SentryFlow/UpdateDeployEvent"
-	SentryFlow_DeleteDeployEvent_FullMethodName = "/protobuf.SentryFlow/DeleteDeployEvent"
-	SentryFlow_AddPodEvent_FullMethodName       = "/protobuf.SentryFlow/AddPodEvent"
-	SentryFlow_UpdatePodEvent_FullMethodName    = "/protobuf.SentryFlow/UpdatePodEvent"
-	SentryFlow_DeletePodEvent_FullMethodName    = "/protobuf.SentryFlow/DeletePodEvent"
-	SentryFlow_AddSvcEvent_FullMethodName       = "/protobuf.SentryFlow/AddSvcEvent"
-	SentryFlow_UpdateSvcEvent_FullMethodName    = "/protobuf.SentryFlow/UpdateSvcEvent"
-	SentryFlow_DeleteSvcEvent_FullMethodName    = "/protobuf.SentryFlow/DeleteSvcEvent"
+	SentryFlow_GetAPILog_FullMethodName           = "/protobuf.SentryFlow/GetAPILog"
+	SentryFlow_GetEnvoyMetrics_FullMethodName     = "/protobuf.SentryFlow/GetEnvoyMetrics"
+	SentryFlow_AddDeployEventDB_FullMethodName    = "/protobuf.SentryFlow/AddDeployEventDB"
+	SentryFlow_UpdateDeployEventDB_FullMethodName = "/protobuf.SentryFlow/UpdateDeployEventDB"
+	SentryFlow_DeleteDeployEventDB_FullMethodName = "/protobuf.SentryFlow/DeleteDeployEventDB"
+	SentryFlow_AddPodEventDB_FullMethodName       = "/protobuf.SentryFlow/AddPodEventDB"
+	SentryFlow_UpdatePodEventDB_FullMethodName    = "/protobuf.SentryFlow/UpdatePodEventDB"
+	SentryFlow_DeletePodEventDB_FullMethodName    = "/protobuf.SentryFlow/DeletePodEventDB"
+	SentryFlow_AddSvcEventDB_FullMethodName       = "/protobuf.SentryFlow/AddSvcEventDB"
+	SentryFlow_UpdateSvcEventDB_FullMethodName    = "/protobuf.SentryFlow/UpdateSvcEventDB"
+	SentryFlow_DeleteSvcEventDB_FullMethodName    = "/protobuf.SentryFlow/DeleteSvcEventDB"
+	SentryFlow_GiveAPILog_FullMethodName          = "/protobuf.SentryFlow/GiveAPILog"
+	SentryFlow_GiveEnvoyMetrics_FullMethodName    = "/protobuf.SentryFlow/GiveEnvoyMetrics"
+	SentryFlow_AddDeployEvent_FullMethodName      = "/protobuf.SentryFlow/AddDeployEvent"
+	SentryFlow_UpdateDeployEvent_FullMethodName   = "/protobuf.SentryFlow/UpdateDeployEvent"
+	SentryFlow_DeleteDeployEvent_FullMethodName   = "/protobuf.SentryFlow/DeleteDeployEvent"
+	SentryFlow_AddPodEvent_FullMethodName         = "/protobuf.SentryFlow/AddPodEvent"
+	SentryFlow_UpdatePodEvent_FullMethodName      = "/protobuf.SentryFlow/UpdatePodEvent"
+	SentryFlow_DeletePodEvent_FullMethodName      = "/protobuf.SentryFlow/DeletePodEvent"
+	SentryFlow_AddSvcEvent_FullMethodName         = "/protobuf.SentryFlow/AddSvcEvent"
+	SentryFlow_UpdateSvcEvent_FullMethodName      = "/protobuf.SentryFlow/UpdateSvcEvent"
+	SentryFlow_DeleteSvcEvent_FullMethodName      = "/protobuf.SentryFlow/DeleteSvcEvent"
 )
 
 // SentryFlowClient is the client API for SentryFlow service.
@@ -44,9 +50,15 @@ type SentryFlowClient interface {
 	// operator -> client
 	GetAPILog(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[APILog], error)
 	GetEnvoyMetrics(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EnvoyMetrics], error)
-	GetDeploy(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error)
-	GetPod(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error)
-	GetService(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error)
+	AddDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error)
+	UpdateDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error)
+	DeleteDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error)
+	AddPodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error)
+	UpdatePodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error)
+	DeletePodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error)
+	AddSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error)
+	UpdateSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error)
+	DeleteSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error)
 	// agent -> operator
 	GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error)
 	GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error)
@@ -107,9 +119,9 @@ func (c *sentryFlowClient) GetEnvoyMetrics(ctx context.Context, in *ClientInfo, 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GetEnvoyMetricsClient = grpc.ServerStreamingClient[EnvoyMetrics]
 
-func (c *sentryFlowClient) GetDeploy(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error) {
+func (c *sentryFlowClient) AddDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[2], SentryFlow_GetDeploy_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[2], SentryFlow_AddDeployEventDB_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,11 +136,49 @@ func (c *sentryFlowClient) GetDeploy(ctx context.Context, in *ClientInfo, opts .
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetDeployClient = grpc.ServerStreamingClient[Deploy]
+type SentryFlow_AddDeployEventDBClient = grpc.ServerStreamingClient[Deploy]
 
-func (c *sentryFlowClient) GetPod(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error) {
+func (c *sentryFlowClient) UpdateDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[3], SentryFlow_GetPod_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[3], SentryFlow_UpdateDeployEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Deploy]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_UpdateDeployEventDBClient = grpc.ServerStreamingClient[Deploy]
+
+func (c *sentryFlowClient) DeleteDeployEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Deploy], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[4], SentryFlow_DeleteDeployEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Deploy]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_DeleteDeployEventDBClient = grpc.ServerStreamingClient[Deploy]
+
+func (c *sentryFlowClient) AddPodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[5], SentryFlow_AddPodEventDB_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +193,49 @@ func (c *sentryFlowClient) GetPod(ctx context.Context, in *ClientInfo, opts ...g
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetPodClient = grpc.ServerStreamingClient[Pod]
+type SentryFlow_AddPodEventDBClient = grpc.ServerStreamingClient[Pod]
 
-func (c *sentryFlowClient) GetService(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error) {
+func (c *sentryFlowClient) UpdatePodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[4], SentryFlow_GetService_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[6], SentryFlow_UpdatePodEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Pod]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_UpdatePodEventDBClient = grpc.ServerStreamingClient[Pod]
+
+func (c *sentryFlowClient) DeletePodEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Pod], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[7], SentryFlow_DeletePodEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Pod]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_DeletePodEventDBClient = grpc.ServerStreamingClient[Pod]
+
+func (c *sentryFlowClient) AddSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[8], SentryFlow_AddSvcEventDB_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,11 +250,49 @@ func (c *sentryFlowClient) GetService(ctx context.Context, in *ClientInfo, opts 
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetServiceClient = grpc.ServerStreamingClient[Service]
+type SentryFlow_AddSvcEventDBClient = grpc.ServerStreamingClient[Service]
+
+func (c *sentryFlowClient) UpdateSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[9], SentryFlow_UpdateSvcEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Service]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_UpdateSvcEventDBClient = grpc.ServerStreamingClient[Service]
+
+func (c *sentryFlowClient) DeleteSvcEventDB(ctx context.Context, in *ClientInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Service], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[10], SentryFlow_DeleteSvcEventDB_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ClientInfo, Service]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_DeleteSvcEventDBClient = grpc.ServerStreamingClient[Service]
 
 func (c *sentryFlowClient) GiveAPILog(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[APILog, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[5], SentryFlow_GiveAPILog_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[11], SentryFlow_GiveAPILog_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +305,7 @@ type SentryFlow_GiveAPILogClient = grpc.ClientStreamingClient[APILog, Response]
 
 func (c *sentryFlowClient) GiveEnvoyMetrics(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EnvoyMetrics, Response], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[6], SentryFlow_GiveEnvoyMetrics_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &SentryFlow_ServiceDesc.Streams[12], SentryFlow_GiveEnvoyMetrics_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,9 +413,15 @@ type SentryFlowServer interface {
 	// operator -> client
 	GetAPILog(*ClientInfo, grpc.ServerStreamingServer[APILog]) error
 	GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error
-	GetDeploy(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error
-	GetPod(*ClientInfo, grpc.ServerStreamingServer[Pod]) error
-	GetService(*ClientInfo, grpc.ServerStreamingServer[Service]) error
+	AddDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error
+	UpdateDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error
+	DeleteDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error
+	AddPodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error
+	UpdatePodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error
+	DeletePodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error
+	AddSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error
+	UpdateSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error
+	DeleteSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error
 	// agent -> operator
 	GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error
 	GiveEnvoyMetrics(grpc.ClientStreamingServer[EnvoyMetrics, Response]) error
@@ -317,14 +449,32 @@ func (UnimplementedSentryFlowServer) GetAPILog(*ClientInfo, grpc.ServerStreaming
 func (UnimplementedSentryFlowServer) GetEnvoyMetrics(*ClientInfo, grpc.ServerStreamingServer[EnvoyMetrics]) error {
 	return status.Errorf(codes.Unimplemented, "method GetEnvoyMetrics not implemented")
 }
-func (UnimplementedSentryFlowServer) GetDeploy(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error {
-	return status.Errorf(codes.Unimplemented, "method GetDeploy not implemented")
+func (UnimplementedSentryFlowServer) AddDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error {
+	return status.Errorf(codes.Unimplemented, "method AddDeployEventDB not implemented")
 }
-func (UnimplementedSentryFlowServer) GetPod(*ClientInfo, grpc.ServerStreamingServer[Pod]) error {
-	return status.Errorf(codes.Unimplemented, "method GetPod not implemented")
+func (UnimplementedSentryFlowServer) UpdateDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateDeployEventDB not implemented")
 }
-func (UnimplementedSentryFlowServer) GetService(*ClientInfo, grpc.ServerStreamingServer[Service]) error {
-	return status.Errorf(codes.Unimplemented, "method GetService not implemented")
+func (UnimplementedSentryFlowServer) DeleteDeployEventDB(*ClientInfo, grpc.ServerStreamingServer[Deploy]) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteDeployEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) AddPodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error {
+	return status.Errorf(codes.Unimplemented, "method AddPodEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) UpdatePodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error {
+	return status.Errorf(codes.Unimplemented, "method UpdatePodEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) DeletePodEventDB(*ClientInfo, grpc.ServerStreamingServer[Pod]) error {
+	return status.Errorf(codes.Unimplemented, "method DeletePodEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) AddSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error {
+	return status.Errorf(codes.Unimplemented, "method AddSvcEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) UpdateSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateSvcEventDB not implemented")
+}
+func (UnimplementedSentryFlowServer) DeleteSvcEventDB(*ClientInfo, grpc.ServerStreamingServer[Service]) error {
+	return status.Errorf(codes.Unimplemented, "method DeleteSvcEventDB not implemented")
 }
 func (UnimplementedSentryFlowServer) GiveAPILog(grpc.ClientStreamingServer[APILog, Response]) error {
 	return status.Errorf(codes.Unimplemented, "method GiveAPILog not implemented")
@@ -401,38 +551,104 @@ func _SentryFlow_GetEnvoyMetrics_Handler(srv interface{}, stream grpc.ServerStre
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type SentryFlow_GetEnvoyMetricsServer = grpc.ServerStreamingServer[EnvoyMetrics]
 
-func _SentryFlow_GetDeploy_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _SentryFlow_AddDeployEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(SentryFlowServer).GetDeploy(m, &grpc.GenericServerStream[ClientInfo, Deploy]{ServerStream: stream})
+	return srv.(SentryFlowServer).AddDeployEventDB(m, &grpc.GenericServerStream[ClientInfo, Deploy]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetDeployServer = grpc.ServerStreamingServer[Deploy]
+type SentryFlow_AddDeployEventDBServer = grpc.ServerStreamingServer[Deploy]
 
-func _SentryFlow_GetPod_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _SentryFlow_UpdateDeployEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(SentryFlowServer).GetPod(m, &grpc.GenericServerStream[ClientInfo, Pod]{ServerStream: stream})
+	return srv.(SentryFlowServer).UpdateDeployEventDB(m, &grpc.GenericServerStream[ClientInfo, Deploy]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetPodServer = grpc.ServerStreamingServer[Pod]
+type SentryFlow_UpdateDeployEventDBServer = grpc.ServerStreamingServer[Deploy]
 
-func _SentryFlow_GetService_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _SentryFlow_DeleteDeployEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ClientInfo)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(SentryFlowServer).GetService(m, &grpc.GenericServerStream[ClientInfo, Service]{ServerStream: stream})
+	return srv.(SentryFlowServer).DeleteDeployEventDB(m, &grpc.GenericServerStream[ClientInfo, Deploy]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type SentryFlow_GetServiceServer = grpc.ServerStreamingServer[Service]
+type SentryFlow_DeleteDeployEventDBServer = grpc.ServerStreamingServer[Deploy]
+
+func _SentryFlow_AddPodEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).AddPodEventDB(m, &grpc.GenericServerStream[ClientInfo, Pod]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_AddPodEventDBServer = grpc.ServerStreamingServer[Pod]
+
+func _SentryFlow_UpdatePodEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).UpdatePodEventDB(m, &grpc.GenericServerStream[ClientInfo, Pod]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_UpdatePodEventDBServer = grpc.ServerStreamingServer[Pod]
+
+func _SentryFlow_DeletePodEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).DeletePodEventDB(m, &grpc.GenericServerStream[ClientInfo, Pod]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_DeletePodEventDBServer = grpc.ServerStreamingServer[Pod]
+
+func _SentryFlow_AddSvcEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).AddSvcEventDB(m, &grpc.GenericServerStream[ClientInfo, Service]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_AddSvcEventDBServer = grpc.ServerStreamingServer[Service]
+
+func _SentryFlow_UpdateSvcEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).UpdateSvcEventDB(m, &grpc.GenericServerStream[ClientInfo, Service]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_UpdateSvcEventDBServer = grpc.ServerStreamingServer[Service]
+
+func _SentryFlow_DeleteSvcEventDB_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ClientInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SentryFlowServer).DeleteSvcEventDB(m, &grpc.GenericServerStream[ClientInfo, Service]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type SentryFlow_DeleteSvcEventDBServer = grpc.ServerStreamingServer[Service]
 
 func _SentryFlow_GiveAPILog_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(SentryFlowServer).GiveAPILog(&grpc.GenericServerStream[APILog, Response]{ServerStream: stream})
@@ -666,18 +882,48 @@ var SentryFlow_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "GetDeploy",
-			Handler:       _SentryFlow_GetDeploy_Handler,
+			StreamName:    "AddDeployEventDB",
+			Handler:       _SentryFlow_AddDeployEventDB_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "GetPod",
-			Handler:       _SentryFlow_GetPod_Handler,
+			StreamName:    "UpdateDeployEventDB",
+			Handler:       _SentryFlow_UpdateDeployEventDB_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "GetService",
-			Handler:       _SentryFlow_GetService_Handler,
+			StreamName:    "DeleteDeployEventDB",
+			Handler:       _SentryFlow_DeleteDeployEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "AddPodEventDB",
+			Handler:       _SentryFlow_AddPodEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "UpdatePodEventDB",
+			Handler:       _SentryFlow_UpdatePodEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeletePodEventDB",
+			Handler:       _SentryFlow_DeletePodEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "AddSvcEventDB",
+			Handler:       _SentryFlow_AddSvcEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "UpdateSvcEventDB",
+			Handler:       _SentryFlow_UpdateSvcEventDB_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DeleteSvcEventDB",
+			Handler:       _SentryFlow_DeleteSvcEventDB_Handler,
 			ServerStreams: true,
 		},
 		{

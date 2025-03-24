@@ -17,8 +17,9 @@ create-sentryflow: build-image
 	kubectl apply -f ./deployments/sentryflow.yaml
 	-kubectl label namespace default sentryflow istio-injection=enabled --overwrite
 	sleep 1
-	kubectl apply -f ./deployments/$(AGENT_NAME).yaml
 	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
+	sleep 3
+	kubectl apply -f ./deployments/$(AGENT_NAME)1.yaml
 
 .PHONY: create-sentryflow-operator
 create-sentryflow-operator:
@@ -77,7 +78,8 @@ delete-sentryflow-operator:
 
 .PHONY: delete-sentryflow-agent
 delete-sentryflow-agent:
-	kubectl delete -f ./deployments/$(AGENT_NAME).yaml --ignore-not-found
+	-kubectl delete -f ./deployments/$(AGENT_NAME)1.yaml --ignore-not-found
+	-kubectl delete -f ./deployments/$(AGENT_NAME)2.yaml --ignore-not-found
 
 .PHONY: delete-client
 delete-client:

@@ -102,9 +102,17 @@ service SentryFlow {
   rpc GetAPILog(ClientInfo) returns (stream APILog);
   rpc GetEnvoyMetrics(ClientInfo) returns (stream EnvoyMetrics);
 
-  rpc GetDeploy(ClientInfo) returns (stream Deploy);
-  rpc GetPod(ClientInfo) returns (stream Pod);
-  rpc GetService(ClientInfo) returns (stream Service);
+  rpc AddDeployEventDB(ClientInfo) returns (stream Deploy);
+  rpc UpdateDeployEventDB(ClientInfo) returns (stream Deploy);
+  rpc DeleteDeployEventDB(ClientInfo) returns (stream Deploy);
+
+  rpc AddPodEventDB(ClientInfo) returns (stream Pod);
+  rpc UpdatePodEventDB(ClientInfo) returns (stream Pod);
+  rpc DeletePodEventDB(ClientInfo) returns (stream Pod);
+  
+  rpc AddSvcEventDB(ClientInfo) returns (stream Service);
+  rpc UpdateSvcEventDB(ClientInfo) returns (stream Service);
+  rpc DeleteSvcEventDB(ClientInfo) returns (stream Service);
 
   // agent -> operator
   rpc GiveAPILog(stream APILog) returns (Response);
