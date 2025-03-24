@@ -11,16 +11,11 @@ import (
 	"github.com/Jitria/SentryFlow/protobuf"
 )
 
-// == //
-
 // envoyMetricsStreamInform structure
 type envoyMetricsStreamInform struct {
-	Hostname  string
-	IPAddress string
-
+	Hostname      string
+	IPAddress     string
 	metricsStream protobuf.SentryFlow_GetEnvoyMetricsServer
-
-	error chan error
 }
 
 // InsertEnvoyMetrics Function
@@ -31,22 +26,20 @@ func InsertEnvoyMetrics(evyMetrics *protobuf.EnvoyMetrics) {
 // exportEnvoyMetrics Function
 func (exp *ExpHandler) exportEnvoyMetrics(wg *sync.WaitGroup) {
 	wg.Add(1)
+	defer wg.Done()
 
 	for {
 		select {
 		case evyMetrics, ok := <-exp.exporterMetrics:
 			if !ok {
-				log.Printf("[Exporter] Failed to fetch metrics from Envoy Metrics channel")
-				wg.Done()
+				log.Printf("[Exporter] EnvoyMetrics channel closed unexpectedly")
 				return
 			}
-
 			if err := exp.SendEnvoyMetrics(evyMetrics); err != nil {
 				log.Printf("[Exporter] Failed to export Envoy metrics: %v", err)
 			}
 
 		case <-exp.stopChan:
-			wg.Done()
 			return
 		}
 	}
@@ -54,21 +47,29 @@ func (exp *ExpHandler) exportEnvoyMetrics(wg *sync.WaitGroup) {
 
 // SendEnvoyMetrics Function
 func (exp *ExpHandler) SendEnvoyMetrics(evyMetrics *protobuf.EnvoyMetrics) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
 	failed := 0
 	total := len(exp.envoyMetricsExporters)
+	newList := make([]*envoyMetricsStreamInform, 0, total)
 
 	for _, exporter := range exp.envoyMetricsExporters {
 		if err := exporter.metricsStream.Send(evyMetrics); err != nil {
-			log.Printf("[Exporter] Failed to export Envoy metrics to %s(%s): %v", exporter.Hostname, exporter.IPAddress, err)
 			failed++
+			log.Printf("[Exporter] Failed to export Envoy metrics to %s(%s): %v",
+				exporter.Hostname, exporter.IPAddress, err)
+		} else {
+			newList = append(newList, exporter)
 		}
 	}
+
+	exp.envoyMetricsExporters = newList
 
 	if failed != 0 {
 		msg := fmt.Sprintf("[Exporter] Failed to export Envoy metrics properly (%d/%d failed)", failed, total)
 		return errors.New(msg)
 	}
-
 	return nil
 }
 
@@ -86,7 +87,5 @@ func (exs *ExpService) GetEnvoyMetrics(info *protobuf.ClientInfo, stream protobu
 	ExpH.envoyMetricsExporters = append(ExpH.envoyMetricsExporters, currExporter)
 	ExpH.exporterLock.Unlock()
 
-	return <-currExporter.error
+	select {}
 }
-
-// == //

@@ -12,23 +12,18 @@ import (
 	"github.com/Jitria/SentryFlow/protobuf"
 )
 
-// == //
-
 // apiLogStreamInform structure
 type apiLogStreamInform struct {
 	Hostname  string
 	IPAddress string
-
-	stream protobuf.SentryFlow_GetAPILogServer
-
-	error chan error
+	stream    protobuf.SentryFlow_GetAPILogServer
 }
 
 // InsertAPILog Function
 func InsertAPILog(apiLog *protobuf.APILog) {
 	ExpH.exporterAPILogs <- apiLog
 
-	// Make a string with labels
+	// optional: label debug
 	var labelString []string
 	for k, v := range apiLog.SrcLabel {
 		labelString = append(labelString, fmt.Sprintf("%s:%s", k, v))
@@ -39,22 +34,20 @@ func InsertAPILog(apiLog *protobuf.APILog) {
 // exportAPILogs Function
 func (exp *ExpHandler) exportAPILogs(wg *sync.WaitGroup) {
 	wg.Add(1)
+	defer wg.Done()
 
 	for {
 		select {
 		case apiLog, ok := <-exp.exporterAPILogs:
 			if !ok {
-				log.Printf("[Exporter] Failed to fetch APIs from APIs channel")
-				wg.Done()
+				log.Printf("[Exporter] APILogs channel closed unexpectedly")
 				return
 			}
-
 			if err := exp.SendAPILogs(apiLog); err != nil {
 				log.Printf("[Exporter] Failed to export API Logs: %v", err)
 			}
 
 		case <-exp.stopChan:
-			wg.Done()
 			return
 		}
 	}
@@ -62,21 +55,29 @@ func (exp *ExpHandler) exportAPILogs(wg *sync.WaitGroup) {
 
 // SendAPILogs Function
 func (exp *ExpHandler) SendAPILogs(apiLog *protobuf.APILog) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
 	failed := 0
 	total := len(exp.apiLogExporters)
+	newList := make([]*apiLogStreamInform, 0, total)
 
 	for _, exporter := range exp.apiLogExporters {
 		if err := exporter.stream.Send(apiLog); err != nil {
-			log.Printf("[Exporter] Failed to export an API log to %s (%s): %v", exporter.Hostname, exporter.IPAddress, err)
 			failed++
+			log.Printf("[Exporter] Failed to export an API log to %s (%s): %v",
+				exporter.Hostname, exporter.IPAddress, err)
+		} else {
+			newList = append(newList, exporter)
 		}
 	}
+
+	exp.apiLogExporters = newList
 
 	if failed != 0 {
 		msg := fmt.Sprintf("[Exporter] Failed to export API logs properly (%d/%d failed)", failed, total)
 		return errors.New(msg)
 	}
-
 	return nil
 }
 
@@ -94,7 +95,5 @@ func (exs *ExpService) GetAPILog(info *protobuf.ClientInfo, stream protobuf.Sent
 	ExpH.apiLogExporters = append(ExpH.apiLogExporters, currExporter)
 	ExpH.exporterLock.Unlock()
 
-	return <-currExporter.error
+	select {}
 }
-
-// == //

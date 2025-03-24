@@ -36,119 +36,130 @@ type Feeder struct {
 }
 
 // NewClient Function
-func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg string, metricCfg string, metricFilter string, mongoDBAddr string) *Feeder {
-	fd := &Feeder{}
+func NewClient(
+	client pb.SentryFlowClient,
+	clientInfo *pb.ClientInfo,
+	logCfg string,
+	metricCfg string,
+	metricFilter string,
+	mongoDBAddr string,
+) *Feeder {
 
+	fd := &Feeder{}
 	fd.Running = true
 	fd.client = client
 	fd.Done = make(chan struct{})
 
+	// === APILog ===
 	if logCfg != "none" {
-		// Contact the server and print out its response
 		logStream, err := client.GetAPILog(context.Background(), clientInfo)
 		if err != nil {
-			log.Fatalf("[Client] Could not get API log: %v", err)
+			log.Fatalf("[Client] Could not get API log stream: %v", err)
+		} else {
+			fd.logStream = logStream
 		}
-
-		fd.logStream = logStream
 	}
 
+	// === EnvoyMetrics ===
 	if metricCfg != "none" && (metricFilter == "all" || metricFilter == "envoy") {
 		emStream, err := client.GetEnvoyMetrics(context.Background(), clientInfo)
 		if err != nil {
-			log.Fatalf("[Client] Could not get Envoy metrics: %v", err)
+			log.Fatalf("[Client] Could not get Envoy metrics stream: %v", err)
+		} else {
+			fd.envoyMetricStream = emStream
 		}
-
-		fd.envoyMetricStream = emStream
 	}
 
-	// Deploy Add
-	addDepStr, err := client.AddDeployEventDB(context.Background(), clientInfo)
-	if err != nil {
+	// ========== Deploy Add/Update/Delete ==========
+	if addDepStr, err := client.AddDeployEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get AddDeployEventDB stream: %v", err)
+	} else {
+		fd.deployAddStream = addDepStr
 	}
-	fd.deployAddStream = addDepStr
 
-	// Deploy Update
-	updDepStr, err := client.UpdateDeployEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if updDepStr, err := client.UpdateDeployEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get UpdateDeployEventDB stream: %v", err)
+	} else {
+		fd.deployUpdateStream = updDepStr
 	}
-	fd.deployUpdateStream = updDepStr
 
-	// Deploy Delete
-	delDepStr, err := client.DeleteDeployEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if delDepStr, err := client.DeleteDeployEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get DeleteDeployEventDB stream: %v", err)
+	} else {
+		fd.deployDeleteStream = delDepStr
 	}
-	fd.deployDeleteStream = delDepStr
 
-	// Pod Add
-	addPodStr, err := client.AddPodEventDB(context.Background(), clientInfo)
-	if err != nil {
+	// ========== Pod Add/Update/Delete ==========
+	if addPodStr, err := client.AddPodEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get AddPodEventDB stream: %v", err)
+	} else {
+		fd.podAddStream = addPodStr
 	}
-	fd.podAddStream = addPodStr
 
-	// Pod Update
-	updPodStr, err := client.UpdatePodEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if updPodStr, err := client.UpdatePodEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get UpdatePodEventDB stream: %v", err)
+	} else {
+		fd.podUpdateStream = updPodStr
 	}
-	fd.podUpdateStream = updPodStr
 
-	// Pod Delete
-	delPodStr, err := client.DeletePodEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if delPodStr, err := client.DeletePodEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get DeletePodEventDB stream: %v", err)
+	} else {
+		fd.podDeleteStream = delPodStr
 	}
-	fd.podDeleteStream = delPodStr
 
-	// Service Add
-	addSvcStr, err := client.AddSvcEventDB(context.Background(), clientInfo)
-	if err != nil {
+	// ========== Service Add/Update/Delete ==========
+	if addSvcStr, err := client.AddSvcEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get AddSvcEventDB stream: %v", err)
+	} else {
+		fd.svcAddStream = addSvcStr
 	}
-	fd.svcAddStream = addSvcStr
 
-	// Service Update
-	updSvcStr, err := client.UpdateSvcEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if updSvcStr, err := client.UpdateSvcEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get UpdateSvcEventDB stream: %v", err)
+	} else {
+		fd.svcUpdateStream = updSvcStr
 	}
-	fd.svcUpdateStream = updSvcStr
 
-	// Service Delete
-	delSvcStr, err := client.DeleteSvcEventDB(context.Background(), clientInfo)
-	if err != nil {
+	if delSvcStr, err := client.DeleteSvcEventDB(context.Background(), clientInfo); err != nil {
 		log.Fatalf("[Client] Could not get DeleteSvcEventDB stream: %v", err)
+	} else {
+		fd.svcDeleteStream = delSvcStr
 	}
-	fd.svcDeleteStream = delSvcStr
 
-	// Initialize DB
+	// ========== MongoDB 연결 ==========
 	dbHandler, err := mongodb.NewMongoDBHandler(mongoDBAddr)
 	if err != nil {
 		log.Fatalf("[MongoDB] Unable to intialize DB: %v", err)
+	} else {
+		fd.dbHandler = *dbHandler
 	}
-	fd.dbHandler = *dbHandler
 
 	return fd
 }
 
+// ========== Routines ========== //
+
 // APILogRoutine Function
 func (fd *Feeder) APILogRoutine(logCfg string) {
+	if fd.logStream == nil {
+		log.Printf("[APILogRoutine] logStream is nil, cannot receive logs.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			data, err := fd.logStream.Recv()
 			if err != nil {
 				log.Fatalf("[Client] Failed to receive an API log: %v", err)
-				break
+				return
 			}
 			err = fd.dbHandler.InsertAPILog(data)
 			if err != nil {
-				log.Fatalf("[MongoDB] Failed to insert an API log: %v", err)
+				log.Printf("[MongoDB] Failed to insert an API log: %v", err)
 			}
+
 		case <-fd.Done:
 			return
 		}
@@ -157,18 +168,24 @@ func (fd *Feeder) APILogRoutine(logCfg string) {
 
 // EnvoyMetricsRoutine Function
 func (fd *Feeder) EnvoyMetricsRoutine(metricCfg string) {
+	if fd.envoyMetricStream == nil {
+		log.Printf("[EnvoyMetricsRoutine] envoyMetricStream is nil, cannot receive metrics.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			data, err := fd.envoyMetricStream.Recv()
 			if err != nil {
 				log.Fatalf("[Client] Failed to receive Envoy metrics: %v", err)
-				break
+				return
 			}
 			err = fd.dbHandler.InsertEnvoyMetrics(data)
 			if err != nil {
-				log.Fatalf("[MongoDB] Failed to insert Envoy metrics: %v", err)
+				log.Printf("[MongoDB] Failed to insert Envoy metrics: %v", err)
 			}
+
 		case <-fd.Done:
 			return
 		}
@@ -177,15 +194,19 @@ func (fd *Feeder) EnvoyMetricsRoutine(metricCfg string) {
 
 // DeployAddRoutine Function
 func (fd *Feeder) DeployAddRoutine() {
+	if fd.deployAddStream == nil {
+		log.Printf("[DeployAddRoutine] deployAddStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			dep, err := fd.deployAddStream.Recv()
 			if err != nil {
-				log.Printf("[Client] DeployAdd stream ended: %v", err)
+				log.Fatalf("[Client] DeployAdd stream ended: %v", err)
 				return
 			}
-			// ADD → Insert
 			if err := fd.dbHandler.InsertDeploy(dep); err != nil {
 				log.Printf("[MongoDB] InsertDeploy(Add) error: %v", err)
 			}
@@ -197,15 +218,19 @@ func (fd *Feeder) DeployAddRoutine() {
 
 // DeployUpdateRoutine Function
 func (fd *Feeder) DeployUpdateRoutine() {
+	if fd.deployUpdateStream == nil {
+		log.Printf("[DeployUpdateRoutine] deployUpdateStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			dep, err := fd.deployUpdateStream.Recv()
 			if err != nil {
-				log.Printf("[Client] DeployUpdate stream ended: %v", err)
+				log.Fatalf("[Client] DeployUpdate stream ended: %v", err)
 				return
 			}
-			// UPDATE → UpdateDeploy
 			if err := fd.dbHandler.UpdateDeploy(dep); err != nil {
 				log.Printf("[MongoDB] UpdateDeploy error: %v", err)
 			}
@@ -217,15 +242,19 @@ func (fd *Feeder) DeployUpdateRoutine() {
 
 // DeployDeleteRoutine Function
 func (fd *Feeder) DeployDeleteRoutine() {
+	if fd.deployDeleteStream == nil {
+		log.Printf("[DeployDeleteRoutine] deployDeleteStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			dep, err := fd.deployDeleteStream.Recv()
 			if err != nil {
-				log.Printf("[Client] DeployDelete stream ended: %v", err)
+				log.Fatalf("[Client] DeployDelete stream ended: %v", err)
 				return
 			}
-			// DELETE → DeleteDeploy
 			if err := fd.dbHandler.DeleteDeploy(dep); err != nil {
 				log.Printf("[MongoDB] DeleteDeploy error: %v", err)
 			}
@@ -237,12 +266,17 @@ func (fd *Feeder) DeployDeleteRoutine() {
 
 // PodAddRoutine Function
 func (fd *Feeder) PodAddRoutine() {
+	if fd.podAddStream == nil {
+		log.Printf("[PodAddRoutine] podAddStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			pod, err := fd.podAddStream.Recv()
 			if err != nil {
-				log.Printf("[Client] PodAdd stream ended: %v", err)
+				log.Fatalf("[Client] PodAdd stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.InsertPod(pod); err != nil {
@@ -256,12 +290,17 @@ func (fd *Feeder) PodAddRoutine() {
 
 // PodUpdateRoutine Function
 func (fd *Feeder) PodUpdateRoutine() {
+	if fd.podUpdateStream == nil {
+		log.Printf("[PodUpdateRoutine] podUpdateStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			pod, err := fd.podUpdateStream.Recv()
 			if err != nil {
-				log.Printf("[Client] PodUpdate stream ended: %v", err)
+				log.Fatalf("[Client] PodUpdate stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.UpdatePod(pod); err != nil {
@@ -275,12 +314,17 @@ func (fd *Feeder) PodUpdateRoutine() {
 
 // PodDeleteRoutine Function
 func (fd *Feeder) PodDeleteRoutine() {
+	if fd.podDeleteStream == nil {
+		log.Printf("[PodDeleteRoutine] podDeleteStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			pod, err := fd.podDeleteStream.Recv()
 			if err != nil {
-				log.Printf("[Client] PodDelete stream ended: %v", err)
+				log.Fatalf("[Client] PodDelete stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.DeletePod(pod); err != nil {
@@ -294,12 +338,17 @@ func (fd *Feeder) PodDeleteRoutine() {
 
 // ServiceAddRoutine Function
 func (fd *Feeder) ServiceAddRoutine() {
+	if fd.svcAddStream == nil {
+		log.Printf("[ServiceAddRoutine] svcAddStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			svc, err := fd.svcAddStream.Recv()
 			if err != nil {
-				log.Printf("[Client] ServiceAdd stream ended: %v", err)
+				log.Fatalf("[Client] ServiceAdd stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.InsertService(svc); err != nil {
@@ -313,12 +362,17 @@ func (fd *Feeder) ServiceAddRoutine() {
 
 // ServiceUpdateRoutine Function
 func (fd *Feeder) ServiceUpdateRoutine() {
+	if fd.svcUpdateStream == nil {
+		log.Printf("[ServiceUpdateRoutine] svcUpdateStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			svc, err := fd.svcUpdateStream.Recv()
 			if err != nil {
-				log.Printf("[Client] ServiceUpdate stream ended: %v", err)
+				log.Fatalf("[Client] ServiceUpdate stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.UpdateService(svc); err != nil {
@@ -332,12 +386,17 @@ func (fd *Feeder) ServiceUpdateRoutine() {
 
 // ServiceDeleteRoutine Function
 func (fd *Feeder) ServiceDeleteRoutine() {
+	if fd.svcDeleteStream == nil {
+		log.Printf("[ServiceDeleteRoutine] svcDeleteStream is nil.")
+		return
+	}
+
 	for fd.Running {
 		select {
 		default:
 			svc, err := fd.svcDeleteStream.Recv()
 			if err != nil {
-				log.Printf("[Client] ServiceDelete stream ended: %v", err)
+				log.Fatalf("[Client] ServiceDelete stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.DeleteService(svc); err != nil {

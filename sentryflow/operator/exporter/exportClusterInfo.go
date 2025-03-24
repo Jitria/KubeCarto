@@ -177,33 +177,48 @@ func (exp *ExpHandler) SendDeployAdd(dep *protobuf.Deploy) error {
 
 	failed := 0
 	total := len(exp.deployAddExporters)
+
+	newList := make([]*deployAddStreamInform, 0, total)
+
 	for _, dsi := range exp.deployAddExporters {
 		if err := dsi.stream.Send(dep); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send AddDeployEvent to %s (%s): %v",
 				dsi.Hostname, dsi.IPAddress, err)
+		} else {
+			newList = append(newList, dsi)
 		}
 	}
+
+	exp.deployAddExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendDeployAdd failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// SendDeployUpdate Function
 func (exp *ExpHandler) SendDeployUpdate(dep *protobuf.Deploy) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
 
 	failed := 0
 	total := len(exp.deployUpdateExporters)
+
+	newList := make([]*deployUpdateStreamInform, 0, total)
+
 	for _, dsi := range exp.deployUpdateExporters {
 		if err := dsi.stream.Send(dep); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send UpdateDeployEvent to %s (%s): %v",
 				dsi.Hostname, dsi.IPAddress, err)
+		} else {
+			newList = append(newList, dsi)
 		}
 	}
+
+	exp.deployUpdateExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendDeployUpdate failed: %d/%d", failed, total)
 	}
@@ -217,13 +232,21 @@ func (exp *ExpHandler) SendDeployDelete(dep *protobuf.Deploy) error {
 
 	failed := 0
 	total := len(exp.deployDeleteExporters)
+
+	newList := make([]*deployDeleteStreamInform, 0, total)
+
 	for _, dsi := range exp.deployDeleteExporters {
 		if err := dsi.stream.Send(dep); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send DeleteDeployEvent to %s (%s): %v",
 				dsi.Hostname, dsi.IPAddress, err)
+		} else {
+			newList = append(newList, dsi)
 		}
 	}
+
+	exp.deployDeleteExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendDeployDelete failed: %d/%d", failed, total)
 	}
@@ -295,13 +318,19 @@ func (exp *ExpHandler) SendPodAdd(pod *protobuf.Pod) error {
 
 	failed := 0
 	total := len(exp.podAddExporters)
+
+	newList := make([]*podAddStreamInform, 0, total)
 	for _, psi := range exp.podAddExporters {
 		if err := psi.stream.Send(pod); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send AddPodEvent to %s (%s): %v",
 				psi.Hostname, psi.IPAddress, err)
+		} else {
+			newList = append(newList, psi)
 		}
 	}
+	exp.podAddExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendPodAdd failed: %d/%d", failed, total)
 	}
@@ -315,13 +344,19 @@ func (exp *ExpHandler) SendPodUpdate(pod *protobuf.Pod) error {
 
 	failed := 0
 	total := len(exp.podUpdateExporters)
+
+	newList := make([]*podUpdateStreamInform, 0, total)
 	for _, psi := range exp.podUpdateExporters {
 		if err := psi.stream.Send(pod); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send UpdatePodEvent to %s (%s): %v",
 				psi.Hostname, psi.IPAddress, err)
+		} else {
+			newList = append(newList, psi)
 		}
 	}
+	exp.podUpdateExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendPodUpdate failed: %d/%d", failed, total)
 	}
@@ -335,13 +370,19 @@ func (exp *ExpHandler) SendPodDelete(pod *protobuf.Pod) error {
 
 	failed := 0
 	total := len(exp.podDeleteExporters)
+
+	newList := make([]*podDeleteStreamInform, 0, total)
 	for _, psi := range exp.podDeleteExporters {
 		if err := psi.stream.Send(pod); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send DeletePodEvent to %s (%s): %v",
 				psi.Hostname, psi.IPAddress, err)
+		} else {
+			newList = append(newList, psi)
 		}
 	}
+	exp.podDeleteExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendPodDelete failed: %d/%d", failed, total)
 	}
@@ -413,13 +454,19 @@ func (exp *ExpHandler) SendServiceAdd(svc *protobuf.Service) error {
 
 	failed := 0
 	total := len(exp.svcAddExporters)
+
+	newList := make([]*svcAddStreamInform, 0, total)
 	for _, ssi := range exp.svcAddExporters {
 		if err := ssi.stream.Send(svc); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send AddSvcEvent to %s (%s): %v",
 				ssi.Hostname, ssi.IPAddress, err)
+		} else {
+			newList = append(newList, ssi)
 		}
 	}
+	exp.svcAddExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendServiceAdd failed: %d/%d", failed, total)
 	}
@@ -433,13 +480,19 @@ func (exp *ExpHandler) SendServiceUpdate(svc *protobuf.Service) error {
 
 	failed := 0
 	total := len(exp.svcUpdateExporters)
+
+	newList := make([]*svcUpdateStreamInform, 0, total)
 	for _, ssi := range exp.svcUpdateExporters {
 		if err := ssi.stream.Send(svc); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send UpdateSvcEvent to %s (%s): %v",
 				ssi.Hostname, ssi.IPAddress, err)
+		} else {
+			newList = append(newList, ssi)
 		}
 	}
+	exp.svcUpdateExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendServiceUpdate failed: %d/%d", failed, total)
 	}
@@ -453,13 +506,19 @@ func (exp *ExpHandler) SendServiceDelete(svc *protobuf.Service) error {
 
 	failed := 0
 	total := len(exp.svcDeleteExporters)
+
+	newList := make([]*svcDeleteStreamInform, 0, total)
 	for _, ssi := range exp.svcDeleteExporters {
 		if err := ssi.stream.Send(svc); err != nil {
 			failed++
 			log.Printf("[Exporter] Failed to send DeleteSvcEvent to %s (%s): %v",
 				ssi.Hostname, ssi.IPAddress, err)
+		} else {
+			newList = append(newList, ssi)
 		}
 	}
+	exp.svcDeleteExporters = newList
+
 	if failed > 0 {
 		return fmt.Errorf("SendServiceDelete failed: %d/%d", failed, total)
 	}

@@ -26,14 +26,15 @@ func main() {
 	// Load environment variables
 	cfg, err := config.LoadEnvVars()
 	if err != nil {
-		log.Fatalf("[Config] Could not load environment variables: %v", err)
+		log.Printf("[Config] Could not load environment variables: %v", err)
+		return
 	}
 
 	// Get arguments
 	clusterCfgPtr := flag.String("clusterCfg", "mongodb", "Where to store cluster resources (none|mongodb)")
 	logCfgPtr := flag.String("logCfg", "mongodb", "Location for storing API logs, {mongodb|none}")
 	metricCfgPtr := flag.String("metricCfg", "mongodb", "Location for storing API and Envoy metrics, {mongodb|none}")
-	metricFilterPtr := flag.String("metricFilter", "envoy", "Filter to select specific API or Envoy metrics to receive, {api|envoy}")
+	metricFilterPtr := flag.String("metricFilter", "envoy", "Filter to select specific API or Envoy metrics to receive, {api|envoy|all}")
 	mongoDBAddrPtr := flag.String("mongodb", "", "MongoDB Server Address")
 	flag.Parse()
 
@@ -119,4 +120,5 @@ func main() {
 	<-signalChan
 
 	close(logClient.Done)
+	log.Printf("[Main] Terminating mongo-client gracefully...")
 }

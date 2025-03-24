@@ -78,21 +78,13 @@ func (handler *DBHandler) Disconnect() {
 // InsertAPILog Function
 func (handler *DBHandler) InsertAPILog(data *protobuf.APILog) error {
 	_, err := handler.apiLogCol.InsertOne(context.Background(), data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // InsertEnvoyMetrics Function
 func (handler *DBHandler) InsertEnvoyMetrics(data *protobuf.EnvoyMetrics) error {
 	_, err := handler.evyMetricsCol.InsertOne(context.Background(), data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // InsertDeploy Function
@@ -109,7 +101,11 @@ func (handler *DBHandler) UpdateDeploy(dep *protobuf.Deploy) error {
 		"name":      dep.Name,
 	}
 	update := bson.M{"$set": dep}
-	_, err := handler.deploys.UpdateOne(context.Background(), filter, update)
+
+	// Upsert 옵션 세팅
+	opts := options.Update().SetUpsert(true)
+
+	_, err := handler.deploys.UpdateOne(context.Background(), filter, update, opts)
 	return err
 }
 
@@ -138,7 +134,10 @@ func (handler *DBHandler) UpdatePod(pod *protobuf.Pod) error {
 		"name":      pod.Name,
 	}
 	update := bson.M{"$set": pod}
-	_, err := handler.pods.UpdateOne(context.Background(), filter, update)
+
+	opts := options.Update().SetUpsert(true)
+
+	_, err := handler.pods.UpdateOne(context.Background(), filter, update, opts)
 	return err
 }
 
@@ -167,7 +166,10 @@ func (handler *DBHandler) UpdateService(svc *protobuf.Service) error {
 		"name":      svc.Name,
 	}
 	update := bson.M{"$set": svc}
-	_, err := handler.services.UpdateOne(context.Background(), filter, update)
+
+	opts := options.Update().SetUpsert(true)
+
+	_, err := handler.services.UpdateOne(context.Background(), filter, update, opts)
 	return err
 }
 
