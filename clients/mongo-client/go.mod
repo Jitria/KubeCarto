@@ -6,7 +6,7 @@ replace SentryFlow/protobuf => ../../protobuf
 
 require (
 	SentryFlow/protobuf v0.0.0-00010101000000-000000000000
-	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b
+	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978
 	go.mongodb.org/mongo-driver v1.13.1
 	google.golang.org/grpc v1.71.0
 )

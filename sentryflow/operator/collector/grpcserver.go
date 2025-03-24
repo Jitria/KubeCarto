@@ -21,17 +21,21 @@ import (
 func (cs *ColService) AddDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
 	log.Printf("[Operator] AddDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
 
-	exporter.InsertDeploy(dep)
+	exporter.InsertDeployAdd(dep)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) UpdateDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
 	log.Printf("[Operator] UpdateDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
+
+	exporter.InsertDeployUpdate(dep)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) DeleteDeployEvent(ctx context.Context, dep *protobuf.Deploy) (*protobuf.Response, error) {
 	log.Printf("[Operator] DeleteDeployEvent: got Deploy %s/%s cluster=%s", dep.Namespace, dep.Name, dep.Cluster)
+
+	exporter.InsertDeployDelete(dep)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
@@ -40,19 +44,23 @@ func (cs *ColService) AddPodEvent(ctx context.Context, pod *protobuf.Pod) (*prot
 	log.Printf("[Operator] AddPodEvent: got Pod %s/%s cluster=%s IP=%s",
 		pod.Namespace, pod.Name, pod.Cluster, pod.PodIP)
 
-	exporter.InsertPod(pod)
+	exporter.InsertPodAdd(pod)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) UpdatePodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
 	log.Printf("[Operator] UpdatePodEvent: got Pod %s/%s cluster=%s IP=%s",
 		pod.Namespace, pod.Name, pod.Cluster, pod.PodIP)
+
+	exporter.InsertPodUpdate(pod)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) DeletePodEvent(ctx context.Context, pod *protobuf.Pod) (*protobuf.Response, error) {
 	log.Printf("[Operator] DeletePodEvent: got Pod %s/%s cluster=%s",
 		pod.Namespace, pod.Name, pod.Cluster)
+
+	exporter.InsertPodDelete(pod)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
@@ -61,19 +69,23 @@ func (cs *ColService) AddSvcEvent(ctx context.Context, svc *protobuf.Service) (*
 	log.Printf("[Operator] AddSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
 		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
 
-	exporter.InsertService(svc)
+	exporter.InsertSvcAdd(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) UpdateSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
 	log.Printf("[Operator] UpdateSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
 		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
+
+	exporter.InsertSvcUpdate(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
 
 func (cs *ColService) DeleteSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
 	log.Printf("[Operator] DeleteSvcEvent: got Service %s/%s cluster=%s",
 		svc.Namespace, svc.Name, svc.Cluster)
+
+	exporter.InsertSvcDelete(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
 

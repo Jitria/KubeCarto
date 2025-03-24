@@ -18,9 +18,17 @@ type Feeder struct {
 	logStream         pb.SentryFlow_GetAPILogClient
 	envoyMetricStream pb.SentryFlow_GetEnvoyMetricsClient
 
-	deployStream  pb.SentryFlow_GetDeployClient
-	podStream     pb.SentryFlow_GetPodClient
-	serviceStream pb.SentryFlow_GetServiceClient
+	deployAddStream    pb.SentryFlow_AddDeployEventDBClient
+	deployUpdateStream pb.SentryFlow_UpdateDeployEventDBClient
+	deployDeleteStream pb.SentryFlow_DeleteDeployEventDBClient
+
+	podAddStream    pb.SentryFlow_AddPodEventDBClient
+	podUpdateStream pb.SentryFlow_UpdatePodEventDBClient
+	podDeleteStream pb.SentryFlow_DeletePodEventDBClient
+
+	svcAddStream    pb.SentryFlow_AddSvcEventDBClient
+	svcUpdateStream pb.SentryFlow_UpdateSvcEventDBClient
+	svcDeleteStream pb.SentryFlow_DeleteSvcEventDBClient
 
 	dbHandler mongodb.DBHandler
 
@@ -54,23 +62,68 @@ func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg str
 		fd.envoyMetricStream = emStream
 	}
 
-	deployStr, err := client.GetDeploy(context.Background(), clientInfo)
+	// Deploy Add
+	addDepStr, err := client.AddDeployEventDB(context.Background(), clientInfo)
 	if err != nil {
-		log.Fatalf("[Client] Could not get Deploy stream: %v", err)
+		log.Fatalf("[Client] Could not get AddDeployEventDB stream: %v", err)
 	}
-	fd.deployStream = deployStr
+	fd.deployAddStream = addDepStr
 
-	podStr, err := client.GetPod(context.Background(), clientInfo)
+	// Deploy Update
+	updDepStr, err := client.UpdateDeployEventDB(context.Background(), clientInfo)
 	if err != nil {
-		log.Fatalf("[Client] Could not get Pod stream: %v", err)
+		log.Fatalf("[Client] Could not get UpdateDeployEventDB stream: %v", err)
 	}
-	fd.podStream = podStr
+	fd.deployUpdateStream = updDepStr
 
-	svcStr, err := client.GetService(context.Background(), clientInfo)
+	// Deploy Delete
+	delDepStr, err := client.DeleteDeployEventDB(context.Background(), clientInfo)
 	if err != nil {
-		log.Fatalf("[Client] Could not get Service stream: %v", err)
+		log.Fatalf("[Client] Could not get DeleteDeployEventDB stream: %v", err)
 	}
-	fd.serviceStream = svcStr
+	fd.deployDeleteStream = delDepStr
+
+	// Pod Add
+	addPodStr, err := client.AddPodEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get AddPodEventDB stream: %v", err)
+	}
+	fd.podAddStream = addPodStr
+
+	// Pod Update
+	updPodStr, err := client.UpdatePodEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get UpdatePodEventDB stream: %v", err)
+	}
+	fd.podUpdateStream = updPodStr
+
+	// Pod Delete
+	delPodStr, err := client.DeletePodEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get DeletePodEventDB stream: %v", err)
+	}
+	fd.podDeleteStream = delPodStr
+
+	// Service Add
+	addSvcStr, err := client.AddSvcEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get AddSvcEventDB stream: %v", err)
+	}
+	fd.svcAddStream = addSvcStr
+
+	// Service Update
+	updSvcStr, err := client.UpdateSvcEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get UpdateSvcEventDB stream: %v", err)
+	}
+	fd.svcUpdateStream = updSvcStr
+
+	// Service Delete
+	delSvcStr, err := client.DeleteSvcEventDB(context.Background(), clientInfo)
+	if err != nil {
+		log.Fatalf("[Client] Could not get DeleteSvcEventDB stream: %v", err)
+	}
+	fd.svcDeleteStream = delSvcStr
 
 	// Initialize DB
 	dbHandler, err := mongodb.NewMongoDBHandler(mongoDBAddr)
@@ -122,60 +175,176 @@ func (fd *Feeder) EnvoyMetricsRoutine(metricCfg string) {
 	}
 }
 
-// DeployRoutine Function
-func (fd *Feeder) DeployRoutine(clusterCfg string) {
+// DeployAddRoutine Function
+func (fd *Feeder) DeployAddRoutine() {
 	for fd.Running {
 		select {
-		case <-fd.Done:
-			return
 		default:
-			dep, err := fd.deployStream.Recv()
+			dep, err := fd.deployAddStream.Recv()
 			if err != nil {
-				log.Printf("[Client] Deploy stream ended: %v", err)
+				log.Printf("[Client] DeployAdd stream ended: %v", err)
 				return
 			}
-			// MongoDB Insert
+			// ADD → Insert
 			if err := fd.dbHandler.InsertDeploy(dep); err != nil {
-				log.Printf("[MongoDB] InsertDeploy error: %v", err)
+				log.Printf("[MongoDB] InsertDeploy(Add) error: %v", err)
 			}
+		case <-fd.Done:
+			return
 		}
 	}
 }
 
-// PodRoutine Function
-func (fd *Feeder) PodRoutine(clusterCfg string) {
+// DeployUpdateRoutine Function
+func (fd *Feeder) DeployUpdateRoutine() {
 	for fd.Running {
 		select {
+		default:
+			dep, err := fd.deployUpdateStream.Recv()
+			if err != nil {
+				log.Printf("[Client] DeployUpdate stream ended: %v", err)
+				return
+			}
+			// UPDATE → UpdateDeploy
+			if err := fd.dbHandler.UpdateDeploy(dep); err != nil {
+				log.Printf("[MongoDB] UpdateDeploy error: %v", err)
+			}
 		case <-fd.Done:
 			return
+		}
+	}
+}
+
+// DeployDeleteRoutine Function
+func (fd *Feeder) DeployDeleteRoutine() {
+	for fd.Running {
+		select {
 		default:
-			pod, err := fd.podStream.Recv()
+			dep, err := fd.deployDeleteStream.Recv()
 			if err != nil {
-				log.Printf("[Client] Pod stream ended: %v", err)
+				log.Printf("[Client] DeployDelete stream ended: %v", err)
+				return
+			}
+			// DELETE → DeleteDeploy
+			if err := fd.dbHandler.DeleteDeploy(dep); err != nil {
+				log.Printf("[MongoDB] DeleteDeploy error: %v", err)
+			}
+		case <-fd.Done:
+			return
+		}
+	}
+}
+
+// PodAddRoutine Function
+func (fd *Feeder) PodAddRoutine() {
+	for fd.Running {
+		select {
+		default:
+			pod, err := fd.podAddStream.Recv()
+			if err != nil {
+				log.Printf("[Client] PodAdd stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.InsertPod(pod); err != nil {
-				log.Printf("[MongoDB] InsertPod error: %v", err)
+				log.Printf("[MongoDB] InsertPod(Add) error: %v", err)
 			}
+		case <-fd.Done:
+			return
 		}
 	}
 }
 
-// ServiceRoutine Function
-func (fd *Feeder) ServiceRoutine(clusterCfg string) {
+// PodUpdateRoutine Function
+func (fd *Feeder) PodUpdateRoutine() {
 	for fd.Running {
 		select {
+		default:
+			pod, err := fd.podUpdateStream.Recv()
+			if err != nil {
+				log.Printf("[Client] PodUpdate stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.UpdatePod(pod); err != nil {
+				log.Printf("[MongoDB] UpdatePod error: %v", err)
+			}
 		case <-fd.Done:
 			return
+		}
+	}
+}
+
+// PodDeleteRoutine Function
+func (fd *Feeder) PodDeleteRoutine() {
+	for fd.Running {
+		select {
 		default:
-			svc, err := fd.serviceStream.Recv()
+			pod, err := fd.podDeleteStream.Recv()
 			if err != nil {
-				log.Printf("[Client] Service stream ended: %v", err)
+				log.Printf("[Client] PodDelete stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.DeletePod(pod); err != nil {
+				log.Printf("[MongoDB] DeletePod error: %v", err)
+			}
+		case <-fd.Done:
+			return
+		}
+	}
+}
+
+// ServiceAddRoutine Function
+func (fd *Feeder) ServiceAddRoutine() {
+	for fd.Running {
+		select {
+		default:
+			svc, err := fd.svcAddStream.Recv()
+			if err != nil {
+				log.Printf("[Client] ServiceAdd stream ended: %v", err)
 				return
 			}
 			if err := fd.dbHandler.InsertService(svc); err != nil {
-				log.Printf("[MongoDB] InsertService error: %v", err)
+				log.Printf("[MongoDB] InsertService(Add) error: %v", err)
 			}
+		case <-fd.Done:
+			return
+		}
+	}
+}
+
+// ServiceUpdateRoutine Function
+func (fd *Feeder) ServiceUpdateRoutine() {
+	for fd.Running {
+		select {
+		default:
+			svc, err := fd.svcUpdateStream.Recv()
+			if err != nil {
+				log.Printf("[Client] ServiceUpdate stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.UpdateService(svc); err != nil {
+				log.Printf("[MongoDB] UpdateService error: %v", err)
+			}
+		case <-fd.Done:
+			return
+		}
+	}
+}
+
+// ServiceDeleteRoutine Function
+func (fd *Feeder) ServiceDeleteRoutine() {
+	for fd.Running {
+		select {
+		default:
+			svc, err := fd.svcDeleteStream.Recv()
+			if err != nil {
+				log.Printf("[Client] ServiceDelete stream ended: %v", err)
+				return
+			}
+			if err := fd.dbHandler.DeleteService(svc); err != nil {
+				log.Printf("[MongoDB] DeleteService error: %v", err)
+			}
+		case <-fd.Done:
+			return
 		}
 	}
 }

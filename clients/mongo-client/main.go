@@ -100,9 +100,17 @@ func main() {
 	}
 
 	if *clusterCfgPtr != "none" {
-		go logClient.DeployRoutine(*clusterCfgPtr)
-		go logClient.PodRoutine(*clusterCfgPtr)
-		go logClient.ServiceRoutine(*clusterCfgPtr)
+		go logClient.DeployAddRoutine()
+		go logClient.DeployUpdateRoutine()
+		go logClient.DeployDeleteRoutine()
+
+		go logClient.PodAddRoutine()
+		go logClient.PodUpdateRoutine()
+		go logClient.PodDeleteRoutine()
+
+		go logClient.ServiceAddRoutine()
+		go logClient.ServiceUpdateRoutine()
+		go logClient.ServiceDeleteRoutine()
 	}
 
 	signalChan := make(chan os.Signal, 1)

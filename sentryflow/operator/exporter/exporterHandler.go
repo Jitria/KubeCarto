@@ -34,19 +34,35 @@ type ExpHandler struct {
 
 	apiLogExporters       []*apiLogStreamInform
 	envoyMetricsExporters []*envoyMetricsStreamInform
-	deployExporters       []*deployStreamInform
-	podExporters          []*podStreamInform
-	svcExporters          []*svcStreamInform
+
+	deployAddExporters    []*deployAddStreamInform
+	deployUpdateExporters []*deployUpdateStreamInform
+	deployDeleteExporters []*deployDeleteStreamInform
+
+	podAddExporters    []*podAddStreamInform
+	podUpdateExporters []*podUpdateStreamInform
+	podDeleteExporters []*podDeleteStreamInform
+
+	svcAddExporters    []*svcAddStreamInform
+	svcUpdateExporters []*svcUpdateStreamInform
+	svcDeleteExporters []*svcDeleteStreamInform
 
 	exporterLock sync.Mutex
 
 	exporterAPILogs chan *protobuf.APILog
 	exporterMetrics chan *protobuf.EnvoyMetrics
-	exporterDeploy  chan *protobuf.Deploy
-	exporterPod     chan *protobuf.Pod
-	exporterSvc     chan *protobuf.Service
 
-	statsPerLabelLock sync.RWMutex
+	exporterDeployAdd    chan *protobuf.Deploy
+	exporterDeployUpdate chan *protobuf.Deploy
+	exporterDeployDelete chan *protobuf.Deploy
+
+	exporterPodAdd    chan *protobuf.Pod
+	exporterPodUpdate chan *protobuf.Pod
+	exporterPodDelete chan *protobuf.Pod
+
+	exporterSvcAdd    chan *protobuf.Service
+	exporterSvcUpdate chan *protobuf.Service
+	exporterSvcDelete chan *protobuf.Service
 
 	stopChan chan struct{}
 }
@@ -65,19 +81,35 @@ func NewExporterHandler() *ExpHandler {
 
 		apiLogExporters:       make([]*apiLogStreamInform, 0),
 		envoyMetricsExporters: make([]*envoyMetricsStreamInform, 0),
-		deployExporters:       make([]*deployStreamInform, 0),
-		podExporters:          make([]*podStreamInform, 0),
-		svcExporters:          make([]*svcStreamInform, 0),
+
+		deployAddExporters:    make([]*deployAddStreamInform, 0),
+		deployUpdateExporters: make([]*deployUpdateStreamInform, 0),
+		deployDeleteExporters: make([]*deployDeleteStreamInform, 0),
+
+		podAddExporters:    make([]*podAddStreamInform, 0),
+		podUpdateExporters: make([]*podUpdateStreamInform, 0),
+		podDeleteExporters: make([]*podDeleteStreamInform, 0),
+
+		svcAddExporters:    make([]*svcAddStreamInform, 0),
+		svcUpdateExporters: make([]*svcUpdateStreamInform, 0),
+		svcDeleteExporters: make([]*svcDeleteStreamInform, 0),
 
 		exporterLock: sync.Mutex{},
 
 		exporterAPILogs: make(chan *protobuf.APILog),
 		exporterMetrics: make(chan *protobuf.EnvoyMetrics),
-		exporterDeploy:  make(chan *protobuf.Deploy),
-		exporterPod:     make(chan *protobuf.Pod),
-		exporterSvc:     make(chan *protobuf.Service),
 
-		statsPerLabelLock: sync.RWMutex{},
+		exporterDeployAdd:    make(chan *protobuf.Deploy),
+		exporterDeployUpdate: make(chan *protobuf.Deploy),
+		exporterDeployDelete: make(chan *protobuf.Deploy),
+
+		exporterPodAdd:    make(chan *protobuf.Pod),
+		exporterPodUpdate: make(chan *protobuf.Pod),
+		exporterPodDelete: make(chan *protobuf.Pod),
+
+		exporterSvcAdd:    make(chan *protobuf.Service),
+		exporterSvcUpdate: make(chan *protobuf.Service),
+		exporterSvcDelete: make(chan *protobuf.Service),
 
 		stopChan: make(chan struct{}),
 	}

@@ -11,131 +11,230 @@ import (
 )
 
 // == //
-type deployStreamInform struct {
+type deployAddStreamInform struct {
 	Hostname  string
 	IPAddress string
-	stream    protobuf.SentryFlow_GetDeployServer // stream Deploy
-	errChan   chan error
-}
-type podStreamInform struct {
-	Hostname  string
-	IPAddress string
-	stream    protobuf.SentryFlow_GetPodServer // stream Pod
-	errChan   chan error
-}
-type svcStreamInform struct {
-	Hostname  string
-	IPAddress string
-	stream    protobuf.SentryFlow_GetServiceServer // stream Service
+	stream    protobuf.SentryFlow_AddDeployEventDBServer
 	errChan   chan error
 }
 
-// InsertDeploy Function
-func InsertDeploy(dep *protobuf.Deploy) {
-	ExpH.exporterDeploy <- dep
+type deployUpdateStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_UpdateDeployEventDBServer
+	errChan   chan error
 }
 
-// InsertPod Function
-func InsertPod(pod *protobuf.Pod) {
-	ExpH.exporterPod <- pod
+type deployDeleteStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_DeleteDeployEventDBServer
+	errChan   chan error
 }
 
-// InsertService Function
-func InsertService(svc *protobuf.Service) {
-	ExpH.exporterSvc <- svc
+type podAddStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_AddPodEventDBServer
+	errChan   chan error
+}
+
+type podUpdateStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_UpdatePodEventDBServer
+	errChan   chan error
+}
+
+type podDeleteStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_DeletePodEventDBServer
+	errChan   chan error
+}
+
+type svcAddStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_AddSvcEventDBServer
+	errChan   chan error
+}
+
+type svcUpdateStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_UpdateSvcEventDBServer
+	errChan   chan error
+}
+
+type svcDeleteStreamInform struct {
+	Hostname  string
+	IPAddress string
+	stream    protobuf.SentryFlow_DeleteSvcEventDBServer
+	errChan   chan error
+}
+
+func InsertDeployAdd(dep *protobuf.Deploy) {
+	ExpH.exporterDeployAdd <- dep
+}
+
+func InsertDeployUpdate(dep *protobuf.Deploy) {
+	ExpH.exporterDeployUpdate <- dep
+}
+
+func InsertDeployDelete(dep *protobuf.Deploy) {
+	ExpH.exporterDeployDelete <- dep
+}
+
+func InsertSvcAdd(svc *protobuf.Service) {
+	ExpH.exporterSvcAdd <- svc
+}
+
+func InsertSvcUpdate(svc *protobuf.Service) {
+	ExpH.exporterSvcUpdate <- svc
+}
+
+func InsertSvcDelete(svc *protobuf.Service) {
+	ExpH.exporterSvcDelete <- svc
+}
+
+func InsertPodAdd(pod *protobuf.Pod) {
+	ExpH.exporterPodAdd <- pod
+}
+
+func InsertPodUpdate(pod *protobuf.Pod) {
+	ExpH.exporterPodUpdate <- pod
+}
+
+func InsertPodDelete(pod *protobuf.Pod) {
+	ExpH.exporterPodDelete <- pod
 }
 
 // exportClusterHandler Function
 func (exp *ExpHandler) exportClusterHandler(wg *sync.WaitGroup) {
 	wg.Add(1)
+	defer wg.Done()
 
 	for {
 		select {
-		case dep := <-exp.exporterDeploy:
+		// Deploy
+		case dep := <-exp.exporterDeployAdd:
 			if dep != nil {
-				exp.SendDeploy(dep)
+				exp.SendDeployAdd(dep)
 			}
-		case pod := <-exp.exporterPod:
+		case dep := <-exp.exporterDeployUpdate:
+			if dep != nil {
+				exp.SendDeployUpdate(dep)
+			}
+		case dep := <-exp.exporterDeployDelete:
+			if dep != nil {
+				exp.SendDeployDelete(dep)
+			}
+
+		// Pod
+		case pod := <-exp.exporterPodAdd:
 			if pod != nil {
-				exp.SendPod(pod)
+				exp.SendPodAdd(pod)
 			}
-		case svc := <-exp.exporterSvc:
+		case pod := <-exp.exporterPodUpdate:
+			if pod != nil {
+				exp.SendPodUpdate(pod)
+			}
+		case pod := <-exp.exporterPodDelete:
+			if pod != nil {
+				exp.SendPodDelete(pod)
+			}
+
+		// Service
+		case svc := <-exp.exporterSvcAdd:
 			if svc != nil {
-				exp.SendService(svc)
+				exp.SendServiceAdd(svc)
+			}
+		case svc := <-exp.exporterSvcUpdate:
+			if svc != nil {
+				exp.SendServiceUpdate(svc)
+			}
+		case svc := <-exp.exporterSvcDelete:
+			if svc != nil {
+				exp.SendServiceDelete(svc)
 			}
 
 		case <-exp.stopChan:
-			wg.Done()
+			log.Print("[Exporter] Stop signal received in exportClusterHandler.")
 			return
 		}
 	}
 }
 
-// SendDeploy Function
-func (exp *ExpHandler) SendDeploy(dep *protobuf.Deploy) error {
+////////////
+// Deploy //
+////////////
+
+// SendDeployAdd Function
+func (exp *ExpHandler) SendDeployAdd(dep *protobuf.Deploy) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
 
 	failed := 0
-	total := len(exp.deployExporters)
-	for _, dsi := range exp.deployExporters {
+	total := len(exp.deployAddExporters)
+	for _, dsi := range exp.deployAddExporters {
 		if err := dsi.stream.Send(dep); err != nil {
 			failed++
-			log.Printf("[Exporter] Failed to send Deploy to %s (%s): %v",
+			log.Printf("[Exporter] Failed to send AddDeployEvent to %s (%s): %v",
 				dsi.Hostname, dsi.IPAddress, err)
 		}
 	}
 	if failed > 0 {
-		return fmt.Errorf("SendDeploy failed: %d/%d", failed, total)
+		return fmt.Errorf("SendDeployAdd failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// SendPod Function
-func (exp *ExpHandler) SendPod(pod *protobuf.Pod) error {
+// SendDeployUpdate Function
+func (exp *ExpHandler) SendDeployUpdate(dep *protobuf.Deploy) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
 
 	failed := 0
-	total := len(exp.podExporters)
-	for _, psi := range exp.podExporters {
-		if err := psi.stream.Send(pod); err != nil {
+	total := len(exp.deployUpdateExporters)
+	for _, dsi := range exp.deployUpdateExporters {
+		if err := dsi.stream.Send(dep); err != nil {
 			failed++
-			log.Printf("[Exporter] Failed to send Pod to %s (%s): %v",
-				psi.Hostname, psi.IPAddress, err)
+			log.Printf("[Exporter] Failed to send UpdateDeployEvent to %s (%s): %v",
+				dsi.Hostname, dsi.IPAddress, err)
 		}
 	}
 	if failed > 0 {
-		return fmt.Errorf("SendPod failed: %d/%d", failed, total)
+		return fmt.Errorf("SendDeployUpdate failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// SendService Function
-func (exp *ExpHandler) SendService(svc *protobuf.Service) error {
+// SendDeployDelete Function
+func (exp *ExpHandler) SendDeployDelete(dep *protobuf.Deploy) error {
 	exp.exporterLock.Lock()
 	defer exp.exporterLock.Unlock()
 
 	failed := 0
-	total := len(exp.svcExporters)
-	for _, ssi := range exp.svcExporters {
-		if err := ssi.stream.Send(svc); err != nil {
+	total := len(exp.deployDeleteExporters)
+	for _, dsi := range exp.deployDeleteExporters {
+		if err := dsi.stream.Send(dep); err != nil {
 			failed++
-			log.Printf("[Exporter] Failed to send Svc to %s (%s): %v",
-				ssi.Hostname, ssi.IPAddress, err)
+			log.Printf("[Exporter] Failed to send DeleteDeployEvent to %s (%s): %v",
+				dsi.Hostname, dsi.IPAddress, err)
 		}
 	}
 	if failed > 0 {
-		return fmt.Errorf("SendService failed: %d/%d", failed, total)
+		return fmt.Errorf("SendDeployDelete failed: %d/%d", failed, total)
 	}
 	return nil
 }
 
-// GetDeploy Function (for gRPC)
-func (exs *ExpService) GetDeploy(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetDeployServer) error {
-	log.Printf("[Exporter] Client %s (%s) connected to GetDeploy", info.HostName, info.IPAddress)
+// AddDeployEventDB Function
+func (exs *ExpService) AddDeployEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_AddDeployEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to AddDeployEventDB", info.HostName, info.IPAddress)
 
-	dsi := &deployStreamInform{
+	dsi := &deployAddStreamInform{
 		Hostname:  info.HostName,
 		IPAddress: info.IPAddress,
 		stream:    stream,
@@ -143,17 +242,17 @@ func (exs *ExpService) GetDeploy(info *protobuf.ClientInfo, stream protobuf.Sent
 	}
 
 	ExpH.exporterLock.Lock()
-	ExpH.deployExporters = append(ExpH.deployExporters, dsi)
+	ExpH.deployAddExporters = append(ExpH.deployAddExporters, dsi)
 	ExpH.exporterLock.Unlock()
 
 	return <-dsi.errChan
 }
 
-// GetPod Function (for gRPC)
-func (exs *ExpService) GetPod(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetPodServer) error {
-	log.Printf("[Exporter] Client %s (%s) connected to GetPod", info.HostName, info.IPAddress)
+// UpdateDeployEventDB Function
+func (exs *ExpService) UpdateDeployEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_UpdateDeployEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to UpdateDeployEventDB", info.HostName, info.IPAddress)
 
-	psi := &podStreamInform{
+	dsi := &deployUpdateStreamInform{
 		Hostname:  info.HostName,
 		IPAddress: info.IPAddress,
 		stream:    stream,
@@ -161,17 +260,117 @@ func (exs *ExpService) GetPod(info *protobuf.ClientInfo, stream protobuf.SentryF
 	}
 
 	ExpH.exporterLock.Lock()
-	ExpH.podExporters = append(ExpH.podExporters, psi)
+	ExpH.deployUpdateExporters = append(ExpH.deployUpdateExporters, dsi)
+	ExpH.exporterLock.Unlock()
+
+	return <-dsi.errChan
+}
+
+// DeleteDeployEventDB Function
+func (exs *ExpService) DeleteDeployEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_DeleteDeployEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to DeleteDeployEventDB", info.HostName, info.IPAddress)
+
+	dsi := &deployDeleteStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.deployDeleteExporters = append(ExpH.deployDeleteExporters, dsi)
+	ExpH.exporterLock.Unlock()
+
+	return <-dsi.errChan
+}
+
+/////////
+// Pod //
+/////////
+
+// SendPodAdd Function
+func (exp *ExpHandler) SendPodAdd(pod *protobuf.Pod) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.podAddExporters)
+	for _, psi := range exp.podAddExporters {
+		if err := psi.stream.Send(pod); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send AddPodEvent to %s (%s): %v",
+				psi.Hostname, psi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendPodAdd failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// SendPodUpdate Function
+func (exp *ExpHandler) SendPodUpdate(pod *protobuf.Pod) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.podUpdateExporters)
+	for _, psi := range exp.podUpdateExporters {
+		if err := psi.stream.Send(pod); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send UpdatePodEvent to %s (%s): %v",
+				psi.Hostname, psi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendPodUpdate failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// SendPodDelete Function
+func (exp *ExpHandler) SendPodDelete(pod *protobuf.Pod) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.podDeleteExporters)
+	for _, psi := range exp.podDeleteExporters {
+		if err := psi.stream.Send(pod); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send DeletePodEvent to %s (%s): %v",
+				psi.Hostname, psi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendPodDelete failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// AddPodEventDB Function
+func (exs *ExpService) AddPodEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_AddPodEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to AddPodEventDB", info.HostName, info.IPAddress)
+
+	psi := &podAddStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.podAddExporters = append(ExpH.podAddExporters, psi)
 	ExpH.exporterLock.Unlock()
 
 	return <-psi.errChan
 }
 
-// GetService Function (for gRPC)
-func (exs *ExpService) GetService(info *protobuf.ClientInfo, stream protobuf.SentryFlow_GetServiceServer) error {
-	log.Printf("[Exporter] Client %s (%s) connected to GetService", info.HostName, info.IPAddress)
+// UpdatePodEventDB Function
+func (exs *ExpService) UpdatePodEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_UpdatePodEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to UpdatePodEventDB", info.HostName, info.IPAddress)
 
-	ssi := &svcStreamInform{
+	psi := &podUpdateStreamInform{
 		Hostname:  info.HostName,
 		IPAddress: info.IPAddress,
 		stream:    stream,
@@ -179,8 +378,146 @@ func (exs *ExpService) GetService(info *protobuf.ClientInfo, stream protobuf.Sen
 	}
 
 	ExpH.exporterLock.Lock()
-	ExpH.svcExporters = append(ExpH.svcExporters, ssi)
+	ExpH.podUpdateExporters = append(ExpH.podUpdateExporters, psi)
+	ExpH.exporterLock.Unlock()
+
+	return <-psi.errChan
+}
+
+// DeletePodEventDB Function
+func (exs *ExpService) DeletePodEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_DeletePodEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to DeletePodEventDB", info.HostName, info.IPAddress)
+
+	psi := &podDeleteStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.podDeleteExporters = append(ExpH.podDeleteExporters, psi)
+	ExpH.exporterLock.Unlock()
+
+	return <-psi.errChan
+}
+
+/////////////
+// Service //
+/////////////
+
+// SendServiceAdd Function
+func (exp *ExpHandler) SendServiceAdd(svc *protobuf.Service) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.svcAddExporters)
+	for _, ssi := range exp.svcAddExporters {
+		if err := ssi.stream.Send(svc); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send AddSvcEvent to %s (%s): %v",
+				ssi.Hostname, ssi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendServiceAdd failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// SendServiceUpdate Function
+func (exp *ExpHandler) SendServiceUpdate(svc *protobuf.Service) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.svcUpdateExporters)
+	for _, ssi := range exp.svcUpdateExporters {
+		if err := ssi.stream.Send(svc); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send UpdateSvcEvent to %s (%s): %v",
+				ssi.Hostname, ssi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendServiceUpdate failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// SendServiceDelete Function
+func (exp *ExpHandler) SendServiceDelete(svc *protobuf.Service) error {
+	exp.exporterLock.Lock()
+	defer exp.exporterLock.Unlock()
+
+	failed := 0
+	total := len(exp.svcDeleteExporters)
+	for _, ssi := range exp.svcDeleteExporters {
+		if err := ssi.stream.Send(svc); err != nil {
+			failed++
+			log.Printf("[Exporter] Failed to send DeleteSvcEvent to %s (%s): %v",
+				ssi.Hostname, ssi.IPAddress, err)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("SendServiceDelete failed: %d/%d", failed, total)
+	}
+	return nil
+}
+
+// AddSvcEventDB Function
+func (exs *ExpService) AddSvcEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_AddSvcEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to AddSvcEventDB", info.HostName, info.IPAddress)
+
+	ssi := &svcAddStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.svcAddExporters = append(ExpH.svcAddExporters, ssi)
 	ExpH.exporterLock.Unlock()
 
 	return <-ssi.errChan
 }
+
+// UpdateSvcEventDB Function
+func (exs *ExpService) UpdateSvcEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_UpdateSvcEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to UpdateSvcEventDB", info.HostName, info.IPAddress)
+
+	ssi := &svcUpdateStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.svcUpdateExporters = append(ExpH.svcUpdateExporters, ssi)
+	ExpH.exporterLock.Unlock()
+
+	return <-ssi.errChan
+}
+
+// DeleteSvcEventDB Function
+func (exs *ExpService) DeleteSvcEventDB(info *protobuf.ClientInfo, stream protobuf.SentryFlow_DeleteSvcEventDBServer) error {
+	log.Printf("[Exporter] Client %s (%s) connected to DeleteSvcEventDB", info.HostName, info.IPAddress)
+
+	ssi := &svcDeleteStreamInform{
+		Hostname:  info.HostName,
+		IPAddress: info.IPAddress,
+		stream:    stream,
+		errChan:   make(chan error),
+	}
+
+	ExpH.exporterLock.Lock()
+	ExpH.svcDeleteExporters = append(ExpH.svcDeleteExporters, ssi)
+	ExpH.exporterLock.Unlock()
+
+	return <-ssi.errChan
+}
+
+// == //

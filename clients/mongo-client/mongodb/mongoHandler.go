@@ -11,6 +11,7 @@ import (
 
 	protobuf "github.com/Jitria/SentryFlow/protobuf"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -96,18 +97,87 @@ func (handler *DBHandler) InsertEnvoyMetrics(data *protobuf.EnvoyMetrics) error 
 
 // InsertDeploy Function
 func (handler *DBHandler) InsertDeploy(dep *protobuf.Deploy) error {
-	_, err := handler.database.Collection("Deploys").InsertOne(context.Background(), dep)
+	_, err := handler.deploys.InsertOne(context.Background(), dep)
+	return err
+}
+
+// UpdateDeploy Function
+func (handler *DBHandler) UpdateDeploy(dep *protobuf.Deploy) error {
+	filter := bson.M{
+		"cluster":   dep.Cluster,
+		"namespace": dep.Namespace,
+		"name":      dep.Name,
+	}
+	update := bson.M{"$set": dep}
+	_, err := handler.deploys.UpdateOne(context.Background(), filter, update)
+	return err
+}
+
+// DeleteDeploy Function
+func (handler *DBHandler) DeleteDeploy(dep *protobuf.Deploy) error {
+	filter := bson.M{
+		"cluster":   dep.Cluster,
+		"namespace": dep.Namespace,
+		"name":      dep.Name,
+	}
+	_, err := handler.deploys.DeleteOne(context.Background(), filter)
 	return err
 }
 
 // InsertPod Function
 func (handler *DBHandler) InsertPod(pod *protobuf.Pod) error {
-	_, err := handler.database.Collection("Pods").InsertOne(context.Background(), pod)
+	_, err := handler.pods.InsertOne(context.Background(), pod)
+	return err
+}
+
+// UpdatePod Function
+func (handler *DBHandler) UpdatePod(pod *protobuf.Pod) error {
+	filter := bson.M{
+		"cluster":   pod.Cluster,
+		"namespace": pod.Namespace,
+		"name":      pod.Name,
+	}
+	update := bson.M{"$set": pod}
+	_, err := handler.pods.UpdateOne(context.Background(), filter, update)
+	return err
+}
+
+// DeletePod Function
+func (handler *DBHandler) DeletePod(pod *protobuf.Pod) error {
+	filter := bson.M{
+		"cluster":   pod.Cluster,
+		"namespace": pod.Namespace,
+		"name":      pod.Name,
+	}
+	_, err := handler.pods.DeleteOne(context.Background(), filter)
 	return err
 }
 
 // InsertService Function
 func (handler *DBHandler) InsertService(svc *protobuf.Service) error {
-	_, err := handler.database.Collection("Services").InsertOne(context.Background(), svc)
+	_, err := handler.services.InsertOne(context.Background(), svc)
+	return err
+}
+
+// UpdateService Function
+func (handler *DBHandler) UpdateService(svc *protobuf.Service) error {
+	filter := bson.M{
+		"cluster":   svc.Cluster,
+		"namespace": svc.Namespace,
+		"name":      svc.Name,
+	}
+	update := bson.M{"$set": svc}
+	_, err := handler.services.UpdateOne(context.Background(), filter, update)
+	return err
+}
+
+// DeleteService Function
+func (handler *DBHandler) DeleteService(svc *protobuf.Service) error {
+	filter := bson.M{
+		"cluster":   svc.Cluster,
+		"namespace": svc.Namespace,
+		"name":      svc.Name,
+	}
+	_, err := handler.services.DeleteOne(context.Background(), filter)
 	return err
 }
