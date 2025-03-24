@@ -256,14 +256,31 @@ func convertServiceToProto(svc *corev1.Service) *protobuf.Service {
 			Protocol:   string(p.Protocol),
 		})
 	}
+
+	var externalIPs []string
+	if len(svc.Spec.ExternalIPs) > 0 {
+		externalIPs = append(externalIPs, svc.Spec.ExternalIPs...)
+	}
+
+	var lbIngresses []string
+	for _, ing := range svc.Status.LoadBalancer.Ingress {
+		if ing.IP != "" {
+			lbIngresses = append(lbIngresses, ing.IP)
+		} else if ing.Hostname != "" {
+			lbIngresses = append(lbIngresses, ing.Hostname)
+		}
+	}
+
 	return &protobuf.Service{
-		Cluster:   config.GlobalConfig.ClusterName,
-		Namespace: svc.Namespace,
-		Name:      svc.Name,
-		Type:      string(svc.Spec.Type),
-		ClusterIP: svc.Spec.ClusterIP,
-		Ports:     protoPorts,
-		Labels:    svc.Labels,
+		Cluster:         config.GlobalConfig.ClusterName,
+		Namespace:       svc.Namespace,
+		Name:            svc.Name,
+		Type:            string(svc.Spec.Type),
+		ClusterIP:       svc.Spec.ClusterIP,
+		Ports:           protoPorts,
+		Labels:          svc.Labels,
+		ExternalIPs:     externalIPs,
+		LoadBalancerIPs: lbIngresses,
 	}
 }
 
