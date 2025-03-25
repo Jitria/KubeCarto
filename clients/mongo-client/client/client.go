@@ -36,15 +36,7 @@ type Feeder struct {
 }
 
 // NewClient Function
-func NewClient(
-	client pb.SentryFlowClient,
-	clientInfo *pb.ClientInfo,
-	logCfg string,
-	metricCfg string,
-	metricFilter string,
-	mongoDBAddr string,
-) *Feeder {
-
+func NewClient(client pb.SentryFlowClient, clientInfo *pb.ClientInfo, logCfg string, metricCfg string, metricFilter string, mongoDBAddr string) *Feeder {
 	fd := &Feeder{}
 	fd.Running = true
 	fd.client = client
@@ -158,8 +150,9 @@ func (fd *Feeder) APILogRoutine(logCfg string) {
 			err = fd.dbHandler.InsertAPILog(data)
 			if err != nil {
 				log.Printf("[MongoDB] Failed to insert an API log: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully inserted API log with ID: %d", data.Id)
 			}
-
 		case <-fd.Done:
 			return
 		}
@@ -184,8 +177,9 @@ func (fd *Feeder) EnvoyMetricsRoutine(metricCfg string) {
 			err = fd.dbHandler.InsertEnvoyMetrics(data)
 			if err != nil {
 				log.Printf("[MongoDB] Failed to insert Envoy metrics: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully inserted Envoy metrics at timestamp: %s", data.TimeStamp)
 			}
-
 		case <-fd.Done:
 			return
 		}
@@ -209,6 +203,8 @@ func (fd *Feeder) DeployAddRoutine() {
 			}
 			if err := fd.dbHandler.InsertDeploy(dep); err != nil {
 				log.Printf("[MongoDB] InsertDeploy(Add) error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully inserted deploy event for: %s", dep.Name)
 			}
 		case <-fd.Done:
 			return
@@ -233,6 +229,8 @@ func (fd *Feeder) DeployUpdateRoutine() {
 			}
 			if err := fd.dbHandler.UpdateDeploy(dep); err != nil {
 				log.Printf("[MongoDB] UpdateDeploy error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully updated deploy event for: %s", dep.Name)
 			}
 		case <-fd.Done:
 			return
@@ -257,6 +255,8 @@ func (fd *Feeder) DeployDeleteRoutine() {
 			}
 			if err := fd.dbHandler.DeleteDeploy(dep); err != nil {
 				log.Printf("[MongoDB] DeleteDeploy error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully deleted deploy event for: %s", dep.Name)
 			}
 		case <-fd.Done:
 			return
@@ -281,6 +281,8 @@ func (fd *Feeder) PodAddRoutine() {
 			}
 			if err := fd.dbHandler.InsertPod(pod); err != nil {
 				log.Printf("[MongoDB] InsertPod(Add) error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully inserted pod event for: %s", pod.Name)
 			}
 		case <-fd.Done:
 			return
@@ -305,6 +307,8 @@ func (fd *Feeder) PodUpdateRoutine() {
 			}
 			if err := fd.dbHandler.UpdatePod(pod); err != nil {
 				log.Printf("[MongoDB] UpdatePod error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully updated pod event for: %s", pod.Name)
 			}
 		case <-fd.Done:
 			return
@@ -329,6 +333,8 @@ func (fd *Feeder) PodDeleteRoutine() {
 			}
 			if err := fd.dbHandler.DeletePod(pod); err != nil {
 				log.Printf("[MongoDB] DeletePod error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully deleted pod event for: %s", pod.Name)
 			}
 		case <-fd.Done:
 			return
@@ -353,6 +359,8 @@ func (fd *Feeder) ServiceAddRoutine() {
 			}
 			if err := fd.dbHandler.InsertService(svc); err != nil {
 				log.Printf("[MongoDB] InsertService(Add) error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully inserted service event for: %s", svc.Name)
 			}
 		case <-fd.Done:
 			return
@@ -377,6 +385,8 @@ func (fd *Feeder) ServiceUpdateRoutine() {
 			}
 			if err := fd.dbHandler.UpdateService(svc); err != nil {
 				log.Printf("[MongoDB] UpdateService error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully updated service event for: %s", svc.Name)
 			}
 		case <-fd.Done:
 			return
@@ -401,6 +411,8 @@ func (fd *Feeder) ServiceDeleteRoutine() {
 			}
 			if err := fd.dbHandler.DeleteService(svc); err != nil {
 				log.Printf("[MongoDB] DeleteService error: %v", err)
+			} else {
+				log.Printf("[MongoDB] Successfully deleted service event for: %s", svc.Name)
 			}
 		case <-fd.Done:
 			return

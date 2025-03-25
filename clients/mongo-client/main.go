@@ -112,6 +112,7 @@ func main() {
 		go logClient.ServiceAddRoutine()
 		go logClient.ServiceUpdateRoutine()
 		go logClient.ServiceDeleteRoutine()
+		log.Printf("[ClusterInfo] Started to watch Cluster Information\n")
 	}
 
 	signalChan := make(chan os.Signal, 1)
