@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: carrot
+  labels:
+    istio-injection: enabled
+---
+# 1) carrot 서버
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carrot-server
+  namespace: carrot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: carrot-server
+  template:
+    metadata:
+      labels:
+        app: carrot-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) carrot 서버를 노출하는 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: carrot-server
+  namespace: carrot
+spec:
+  selector:
+    app: carrot-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+# 3) carrot 클라이언트
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carrot-client
+  namespace: carrot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: carrot-client
+  template:
+    metadata:
+      labels:
+        app: carrot-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              echo "===== Curl from carrot-client ====="
+              echo "-> apple-server"
+              curl -sS http://apple-server.apple.svc.cluster.local:80 || echo "apple-server error"
+              echo "-> banana-server"
+              curl -sS http://banana-server.banana.svc.cluster.local:80 || echo "banana-server error"
+              echo "-> carrot-server"
+              curl -sS http://carrot-server.carrot.svc.cluster.local:80 || echo "carrot-server error"
+              echo "===================================="
+              sleep 10
+            done

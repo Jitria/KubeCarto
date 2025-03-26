@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apple
+  labels:
+    istio-injection: enabled
+---
+# 1) apple 서버(HTTP 요청을 받는 파드)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apple-server
+  namespace: apple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apple-server
+  template:
+    metadata:
+      labels:
+        app: apple-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) apple 서버를 노출하는 Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: apple-server
+  namespace: apple
+spec:
+  selector:
+    app: apple-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+# 3) apple 클라이언트(다른 네임스페이스 서버에도 curl)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apple-client
+  namespace: apple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apple-client
+  template:
+    metadata:
+      labels:
+        app: apple-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        # curl이 이미 들어있는 이미지
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              echo "===== Curl from apple-client ====="
+              echo "-> apple-server"
+              curl -sS http://apple-server.apple.svc.cluster.local:80 || echo "apple-server error"
+              echo "-> banana-server"
+              curl -sS http://banana-server.banana.svc.cluster.local:80 || echo "banana-server error"
+              echo "-> carrot-server"
+              curl -sS http://carrot-server.carrot.svc.cluster.local:80 || echo "carrot-server error"
+              echo "=================================="
+              sleep 10
+            done

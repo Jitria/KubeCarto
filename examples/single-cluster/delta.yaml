@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: delta
+  labels:
+    istio-injection: enabled
+---
+# 1) delta 서버 (delta-server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delta-server
+  namespace: delta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delta-server
+  template:
+    metadata:
+      labels:
+        app: delta-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) delta 서버 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: delta-server
+  namespace: delta
+spec:
+  selector:
+    app: delta-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# 3) delta 클라이언트 (delta-client)
+#    => 주기적으로 charlie-server, alpha-server 로 curl
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delta-client
+  namespace: delta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delta-client
+  template:
+    metadata:
+      labels:
+        app: delta-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              echo "===== Curl from delta-client => charlie-server, alpha-server ====="
+              echo "-> charlie"
+              curl -sS http://charlie-server.charlie.svc.cluster.local:80 || echo "charlie-server error"
+              echo "-> alpha"
+              curl -sS http://alpha-server.alpha.svc.cluster.local:80 || echo "alpha-server error"
+              echo "================================================================="
+              sleep 10
+            done

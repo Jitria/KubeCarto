@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bravo
+  labels:
+    istio-injection: enabled
+---
+# 1) bravo 서버 (bravo-server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bravo-server
+  namespace: bravo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bravo-server
+  template:
+    metadata:
+      labels:
+        app: bravo-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) bravo 서버 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bravo-server
+  namespace: bravo
+spec:
+  selector:
+    app: bravo-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# 3) bravo 클라이언트 (bravo-client)
+#    => 주기적으로 charlie-server, delta-server 로 curl
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bravo-client
+  namespace: bravo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bravo-client
+  template:
+    metadata:
+      labels:
+        app: bravo-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              echo "===== Curl from bravo-client => charlie-server, delta-server ====="
+              echo "-> charlie"
+              curl -sS http://charlie-server.charlie.svc.cluster.local:80 || echo "charlie-server error"
+              echo "-> delta"
+              curl -sS http://delta-server.delta.svc.cluster.local:80 || echo "delta-server error"
+              echo "================================================================="
+              sleep 10
+            done

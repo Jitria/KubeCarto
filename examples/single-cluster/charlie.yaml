@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: charlie
+  labels:
+    istio-injection: enabled
+---
+# 1) charlie 서버 (charlie-server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charlie-server
+  namespace: charlie
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: charlie-server
+  template:
+    metadata:
+      labels:
+        app: charlie-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) charlie 서버 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: charlie-server
+  namespace: charlie
+spec:
+  selector:
+    app: charlie-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# 3) charlie 클라이언트 (charlie-client)
+#    => 사용자 요구사항에는 charlie -> ??? 가 명시 안 됨 (호출 없음)
+#    => 필요 없다면 생략 가능하나, "형태 맞추기" 위해 배포 예시만 넣음.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charlie-client
+  namespace: charlie
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: charlie-client
+  template:
+    metadata:
+      labels:
+        app: charlie-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "charlie-client does nothing. Sleeping..."
+            # 여유롭게 1회성 메시지 출력 후 무한대기
+            while true; do
+              sleep 3600
+            done

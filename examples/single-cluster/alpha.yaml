@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alpha
+  labels:
+    istio-injection: enabled
+---
+# 1) alpha 서버 (alpha-server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-server
+  namespace: alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpha-server
+  template:
+    metadata:
+      labels:
+        app: alpha-server
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+---
+# 2) alpha 서버 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpha-server
+  namespace: alpha
+spec:
+  selector:
+    app: alpha-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+# 3) alpha 클라이언트 (alpha-client)
+#    => 주기적으로 bravo-server 로 curl
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-client
+  namespace: alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpha-client
+  template:
+    metadata:
+      labels:
+        app: alpha-client
+    spec:
+      containers:
+      - name: client
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              echo "===== Curl from alpha-client => bravo-server ====="
+              curl -sS http://bravo-server.bravo.svc.cluster.local:80 || echo "bravo-server error"
+              echo "=================================================="
+              sleep 10
+            done

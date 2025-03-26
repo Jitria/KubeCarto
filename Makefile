@@ -12,15 +12,6 @@ MONGO_CLIENT_IMAGE_NAME = $(PREFIX)/$(MONGO_CLIENT_NAME)
 
 TAG = v0.1
 
-.PHONY: create-sentryflow
-create-sentryflow: build-image
-	kubectl apply -f ./deployments/sentryflow.yaml
-	-kubectl label namespace default sentryflow istio-injection=enabled --overwrite
-	sleep 1
-	kubectl apply -f ./deployments/$(OPERATOR_NAME).yaml
-	sleep 3
-	kubectl apply -f ./deployments/$(AGENT_NAME)1.yaml
-
 .PHONY: create-sentryflow-operator
 create-sentryflow-operator:
 	docker build -t $(OPERATOR_IMAGE_NAME):$(TAG) -f sentryflow/operator/Dockerfile .
@@ -65,7 +56,8 @@ create-client: delete-client
 .PHONY: create-example
 create-example: delete-example
 	kubectl label namespace default sentryflow istio-injection=enabled --overwrite
-	kubectl apply -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml
+	kubectl apply -Rf examples/httpbin
+	kubectl apply -Rf examples/single-cluster
 
 .PHONY: delete-sentryflow
 delete-sentryflow:

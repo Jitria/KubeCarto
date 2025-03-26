@@ -7,20 +7,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: sentryflow
-  name: sentryflow-agent
+  name: sentryflow-agent1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sentryflow-agent
+      app: sentryflow-agent1
   template:
     metadata:
       labels:
-        app: sentryflow-agent
+        app: sentryflow-agent1
     spec:
       serviceAccountName: sentryflow-sa
       containers:
-      - name: sentryflow-agent
+      - name: sentryflow-agent1
         image: boanlab/sentryflow-agent:v0.1
         env:
         - name: CLUSTERNAME
@@ -34,10 +34,10 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: sentryflow
-  name: sentryflow-agent
+  name: sentryflow-agent1
 spec:
   selector:
-    app: sentryflow-agent
+    app: sentryflow-agent1
   ports:
   - name: collector-grpc
     protocol: TCP
