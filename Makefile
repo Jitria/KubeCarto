@@ -80,7 +80,8 @@ delete-client:
 
 .PHONY: delete-example
 delete-example:
-	kubectl delete -f examples/httpbin/httpbin.yaml -f examples/httpbin/sleep.yaml --ignore-not-found
+	kubectl delete -Rf examples/httpbin --ignore-not-found
+	kubectl delete -Rf examples/single-cluster --ignore-not-found
 
 .PHONY: build-image
 build-image:
