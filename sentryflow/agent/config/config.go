@@ -64,7 +64,7 @@ func readCmdLineParams() {
 	operatorAddrStr := flag.String(OperatorAddr, "sentryflow-operator.sentryflow.svc.cluster.local", "Address for Operator gRPC")
 	operatorPortStr := flag.String(OperatorPort, "5317", "Port for Operator gRPC")
 
-	clusterNameStr := flag.String(ClusterName, "", "Name of the Kubernetes cluster")
+	clusterNameStr := flag.String(ClusterName, "UnKnown", "Name of the Kubernetes cluster")
 
 	patchingNamespacesB := flag.Bool(PatchingNamespaces, false, "Enable patching 'istio-injection' to all namespaces")
 	restartingPatchedDeploymentsB := flag.Bool(RestartingPatchedDeployments, false, "Enable restarting the deployments in all patched namespaces")

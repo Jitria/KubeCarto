@@ -13,17 +13,19 @@ message APILog {
   uint64 id = 1;
   string timeStamp = 2;
 
-  string srcNamespace = 11;
-  string srcName = 12;
-  map<string, string> srcLabel = 13;
+  string srcCluster = 11;
+  string srcNamespace = 12;
+  string srcName = 13;
+  map<string, string> srcLabel = 14;
 
   string srcType = 21;
   string srcIP = 22;
   string srcPort = 23;
 
-  string dstNamespace = 31;
-  string dstName = 32;
-  map<string, string> dstLabel = 33;
+  string dstCluster = 31;
+  string dstNamespace = 32;
+  string dstName = 33;
+  map<string, string> dstLabel = 34;
 
   string dstType = 41;
   string dstIP = 42;
