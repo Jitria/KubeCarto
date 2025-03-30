@@ -1,11 +1,9 @@
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323065926-355e51977d92 h1:Xj2I4QSXfX6USoiogRkLROjgIBvCILwwm/e5/GonW00=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323065926-355e51977d92/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323071521-179af1a8ea96 h1:z9JCS+uMcGfnxrPnVmrEDSl2n15VIKpPcvqVWH1hRMo=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323071521-179af1a8ea96/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323114251-2657b6dc2a57 h1:FmSkSlnUnWSbDmoyNPSsFl3x1ViiP+hhImRYY534lMw=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250323114251-2657b6dc2a57/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b h1:ydFXKDlDyevZeDVluQm6uKXJfsqVezVnoYYKddUfDJU=
 github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250326084214-3facac1c6e60 h1:NkU/6ImHyfNY8y7KO9s78Uk5B52Tgl70KORV7RmqL7I=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250326084214-3facac1c6e60/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3 h1:BrrbBvdyhY0lZIOmyGXh1VWG2JkGpjmGupBl23d/XPM=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3 h1:boJj011Hh+874zpIySeApCX4GeOjPl9qhRF3QuIZq+Q=
 github.com/cncf/xds/go v0.0.0-20241223141626-cff3c89139a3/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=

@@ -3,7 +3,7 @@ module Operator
 go 1.24.1
 
 require (
-	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978
+	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3
 	github.com/spf13/viper v1.19.0
 	google.golang.org/grpc v1.71.0
 )

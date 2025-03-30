@@ -11,6 +11,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/json"
 
+	"Agent/config"
 	"Agent/types"
 	"Agent/uploader"
 
@@ -431,6 +432,7 @@ func lookupIPAddress(ipAddr string) interface{} {
 // LookupK8sResource Function
 func LookupK8sResource(srcIP string) types.K8sResource {
 	ret := types.K8sResource{
+		Cluster:   "Unknown",
 		Namespace: "Unknown",
 		Name:      "Unknown",
 		Labels:    make(map[string]string),
@@ -445,6 +447,7 @@ func LookupK8sResource(srcIP string) types.K8sResource {
 	case *corev1.Pod:
 		pod, ok := raw.(*corev1.Pod)
 		if ok {
+			ret.Cluster = config.GlobalConfig.ClusterName
 			ret.Namespace = pod.Namespace
 			ret.Name = pod.Name
 			ret.Labels = pod.Labels
@@ -453,6 +456,7 @@ func LookupK8sResource(srcIP string) types.K8sResource {
 	case *corev1.Service:
 		svc, ok := raw.(*corev1.Service)
 		if ok {
+			ret.Cluster = config.GlobalConfig.ClusterName
 			ret.Namespace = svc.Namespace
 			ret.Name = svc.Name
 			ret.Labels = svc.Labels

@@ -19,6 +19,7 @@ type ClusterEvent struct {
 
 // K8sResource Structure
 type K8sResource struct {
+	Cluster    string
 	Type       uint8
 	Namespace  string
 	Name       string

@@ -3,7 +3,7 @@ module Agent
 go 1.24.1
 
 require (
-	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b
+	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4
 	github.com/spf13/viper v1.19.0
 	go.opentelemetry.io/proto/otlp v1.5.0

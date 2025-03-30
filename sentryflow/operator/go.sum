@@ -1,7 +1,7 @@
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324063332-d092d0233d2a h1:r/mgBIWN458VL6XhjEu9iWmKd6L0IplrL79vojbyL+I=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324063332-d092d0233d2a/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978 h1:AOoHqDK7uy3R4f/TyD21h10aPlziIShksw+GUuUCG7c=
-github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250326084214-3facac1c6e60 h1:NkU/6ImHyfNY8y7KO9s78Uk5B52Tgl70KORV7RmqL7I=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250326084214-3facac1c6e60/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3 h1:BrrbBvdyhY0lZIOmyGXh1VWG2JkGpjmGupBl23d/XPM=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

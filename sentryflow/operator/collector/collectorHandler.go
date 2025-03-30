@@ -30,10 +30,13 @@ type ColHandler struct {
 	grpcServer  *grpc.Server
 	grpcService *ColService
 
-	stopChan chan struct{}
+	ipToCluster map[string]string            // key: IP, value: clustername
+	svcCache    map[string]*protobuf.Service // key: "cluster/namespace/name" value: *protobuf.Service
 
 	apiLogChan  chan interface{}
 	metricsChan chan interface{}
+
+	stopChan chan struct{}
 }
 
 // init Function
@@ -45,11 +48,13 @@ func init() {
 func NewColHandler() *ColHandler {
 	lh := &ColHandler{
 		grpcService: new(ColService),
-
-		stopChan: make(chan struct{}),
+		ipToCluster: make(map[string]string),
+		svcCache:    make(map[string]*protobuf.Service),
 
 		apiLogChan:  make(chan interface{}),
 		metricsChan: make(chan interface{}),
+
+		stopChan: make(chan struct{}),
 	}
 
 	return lh

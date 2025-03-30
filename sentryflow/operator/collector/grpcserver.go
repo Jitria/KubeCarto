@@ -69,6 +69,26 @@ func (cs *ColService) AddSvcEvent(ctx context.Context, svc *protobuf.Service) (*
 	log.Printf("[Operator] AddSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
 		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
 
+	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
+
+	if oldSvc, found := ColH.svcCache[key]; found {
+		for _, ip := range oldSvc.ExternalIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+		for _, ip := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+	}
+
+	for _, extIP := range svc.ExternalIPs {
+		ColH.ipToCluster[extIP] = svc.Cluster
+	}
+	for _, lbIP := range svc.LoadBalancerIPs {
+		ColH.ipToCluster[lbIP] = svc.Cluster
+	}
+
+	ColH.svcCache[key] = svc
+
 	exporter.InsertSvcAdd(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
@@ -77,6 +97,25 @@ func (cs *ColService) UpdateSvcEvent(ctx context.Context, svc *protobuf.Service)
 	log.Printf("[Operator] UpdateSvcEvent: got Service %s/%s cluster=%s clusterIP=%s",
 		svc.Namespace, svc.Name, svc.Cluster, svc.ClusterIP)
 
+	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
+
+	if oldSvc, found := ColH.svcCache[key]; found {
+		for _, ip := range oldSvc.ExternalIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+		for _, ip := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+	}
+
+	for _, extIP := range svc.ExternalIPs {
+		ColH.ipToCluster[extIP] = svc.Cluster
+	}
+	for _, lbIP := range svc.LoadBalancerIPs {
+		ColH.ipToCluster[lbIP] = svc.Cluster
+	}
+	ColH.svcCache[key] = svc
+
 	exporter.InsertSvcUpdate(svc)
 	return &protobuf.Response{Msg: 0}, nil
 }
@@ -84,6 +123,25 @@ func (cs *ColService) UpdateSvcEvent(ctx context.Context, svc *protobuf.Service)
 func (cs *ColService) DeleteSvcEvent(ctx context.Context, svc *protobuf.Service) (*protobuf.Response, error) {
 	log.Printf("[Operator] DeleteSvcEvent: got Service %s/%s cluster=%s",
 		svc.Namespace, svc.Name, svc.Cluster)
+
+	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
+
+	if oldSvc, found := ColH.svcCache[key]; found {
+		for _, ip := range oldSvc.ExternalIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+		for _, ip := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+		delete(ColH.svcCache, key)
+	} else {
+		for _, ip := range svc.ExternalIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+		for _, ip := range svc.LoadBalancerIPs {
+			delete(ColH.ipToCluster, ip)
+		}
+	}
 
 	exporter.InsertSvcDelete(svc)
 	return &protobuf.Response{Msg: 0}, nil
@@ -120,8 +178,20 @@ func ProcessAPILogs(wg *sync.WaitGroup) {
 				continue
 			}
 
-			go exporter.InsertAPILog(logType.(*protobuf.APILog))
+			apiLog := logType.(*protobuf.APILog)
 
+			if apiLog.DstCluster == "Unknown" {
+				if cl, found := ColH.ipToCluster[apiLog.DstIP]; found {
+					apiLog.DstCluster = cl
+				}
+			}
+			if apiLog.SrcCluster == "Unknown" {
+				if cl, found := ColH.ipToCluster[apiLog.SrcIP]; found {
+					apiLog.SrcCluster = cl
+				}
+			}
+
+			go exporter.InsertAPILog(apiLog)
 		case <-ColH.stopChan:
 			wg.Done()
 			return

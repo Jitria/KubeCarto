@@ -87,6 +87,7 @@ func generateAPILogsFromEnvoy(entry *envoyAccLogsData.HTTPAccessLogEntry) *proto
 		Id:        0, // @todo zero for now
 		TimeStamp: strconv.FormatInt(timeStamp, 10),
 
+		SrcCluster:   src.Cluster,
 		SrcNamespace: src.Namespace,
 		SrcName:      src.Name,
 		SrcLabel:     src.Labels,
@@ -94,6 +95,7 @@ func generateAPILogsFromEnvoy(entry *envoyAccLogsData.HTTPAccessLogEntry) *proto
 		SrcPort:      srcPort,
 		SrcType:      types.K8sResourceTypeToString(src.Type),
 
+		DstCluster:   dst.Cluster,
 		DstNamespace: dst.Namespace,
 		DstName:      dst.Name,
 		DstLabel:     dst.Labels,
