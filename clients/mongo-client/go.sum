@@ -6,6 +6,8 @@ github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b h1:ydFX
 github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978 h1:AOoHqDK7uy3R4f/TyD21h10aPlziIShksw+GUuUCG7c=
 github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324093930-bddce980a978/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3 h1:BrrbBvdyhY0lZIOmyGXh1VWG2JkGpjmGupBl23d/XPM=
+github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3/go.mod h1:BZ2W/9+5a0uvShTsSc1+EQ2rz8RXYUfad6gJt10gPd4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=

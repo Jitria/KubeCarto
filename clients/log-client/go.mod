@@ -5,7 +5,7 @@ go 1.24.1
 replace SentryFlow/protobuf => ../../protobuf
 
 require (
-	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250324062738-944e4634df0b
+	github.com/Jitria/SentryFlow/protobuf v0.0.0-20250330041047-3bd59325eea3
 	google.golang.org/grpc v1.71.0
 )
 
