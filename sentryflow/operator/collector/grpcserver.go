@@ -72,19 +72,27 @@ func (cs *ColService) AddSvcEvent(ctx context.Context, svc *protobuf.Service) (*
 	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
 
 	if oldSvc, found := ColH.svcCache[key]; found {
-		for _, ip := range oldSvc.ExternalIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.ExternalIPs {
+			delete(ColH.ipToService, oldIP)
 		}
-		for _, ip := range oldSvc.LoadBalancerIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToService, oldIP)
 		}
 	}
 
 	for _, extIP := range svc.ExternalIPs {
-		ColH.ipToCluster[extIP] = svc.Cluster
+		ColH.ipToService[extIP] = &ServiceInfo{
+			Cluster:   svc.Cluster,
+			Namespace: svc.Namespace,
+			Name:      svc.Name,
+		}
 	}
 	for _, lbIP := range svc.LoadBalancerIPs {
-		ColH.ipToCluster[lbIP] = svc.Cluster
+		ColH.ipToService[lbIP] = &ServiceInfo{
+			Cluster:   svc.Cluster,
+			Namespace: svc.Namespace,
+			Name:      svc.Name,
+		}
 	}
 
 	ColH.svcCache[key] = svc
@@ -100,19 +108,27 @@ func (cs *ColService) UpdateSvcEvent(ctx context.Context, svc *protobuf.Service)
 	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
 
 	if oldSvc, found := ColH.svcCache[key]; found {
-		for _, ip := range oldSvc.ExternalIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.ExternalIPs {
+			delete(ColH.ipToService, oldIP)
 		}
-		for _, ip := range oldSvc.LoadBalancerIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToService, oldIP)
 		}
 	}
 
 	for _, extIP := range svc.ExternalIPs {
-		ColH.ipToCluster[extIP] = svc.Cluster
+		ColH.ipToService[extIP] = &ServiceInfo{
+			Cluster:   svc.Cluster,
+			Namespace: svc.Namespace,
+			Name:      svc.Name,
+		}
 	}
 	for _, lbIP := range svc.LoadBalancerIPs {
-		ColH.ipToCluster[lbIP] = svc.Cluster
+		ColH.ipToService[lbIP] = &ServiceInfo{
+			Cluster:   svc.Cluster,
+			Namespace: svc.Namespace,
+			Name:      svc.Name,
+		}
 	}
 	ColH.svcCache[key] = svc
 
@@ -127,19 +143,19 @@ func (cs *ColService) DeleteSvcEvent(ctx context.Context, svc *protobuf.Service)
 	key := fmt.Sprintf("%s/%s/%s", svc.Cluster, svc.Namespace, svc.Name)
 
 	if oldSvc, found := ColH.svcCache[key]; found {
-		for _, ip := range oldSvc.ExternalIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.ExternalIPs {
+			delete(ColH.ipToService, oldIP)
 		}
-		for _, ip := range oldSvc.LoadBalancerIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, oldIP := range oldSvc.LoadBalancerIPs {
+			delete(ColH.ipToService, oldIP)
 		}
 		delete(ColH.svcCache, key)
 	} else {
-		for _, ip := range svc.ExternalIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, extIP := range svc.ExternalIPs {
+			delete(ColH.ipToService, extIP)
 		}
-		for _, ip := range svc.LoadBalancerIPs {
-			delete(ColH.ipToCluster, ip)
+		for _, lbIP := range svc.LoadBalancerIPs {
+			delete(ColH.ipToService, lbIP)
 		}
 	}
 
@@ -181,13 +197,19 @@ func ProcessAPILogs(wg *sync.WaitGroup) {
 			apiLog := logType.(*protobuf.APILog)
 
 			if apiLog.DstCluster == "Unknown" {
-				if cl, found := ColH.ipToCluster[apiLog.DstIP]; found {
-					apiLog.DstCluster = cl
+				if si, found := ColH.ipToService[apiLog.DstIP]; found {
+					apiLog.DstCluster = si.Cluster
+					apiLog.DstNamespace = si.Namespace
+					apiLog.DstName = si.Name
+					apiLog.DstType = "Service"
 				}
 			}
 			if apiLog.SrcCluster == "Unknown" {
-				if cl, found := ColH.ipToCluster[apiLog.SrcIP]; found {
-					apiLog.SrcCluster = cl
+				if si, found := ColH.ipToService[apiLog.SrcIP]; found {
+					apiLog.SrcCluster = si.Cluster
+					apiLog.SrcNamespace = si.Namespace
+					apiLog.SrcName = si.Name
+					apiLog.SrcType = "Service"
 				}
 			}
 

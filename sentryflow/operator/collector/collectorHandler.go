@@ -24,13 +24,19 @@ type ColService struct {
 // ColH global reference for Collector Handler
 var ColH *ColHandler
 
+type ServiceInfo struct {
+	Cluster   string
+	Namespace string
+	Name      string
+}
+
 // ColHandler Structure
 type ColHandler struct {
 	colService  net.Listener
 	grpcServer  *grpc.Server
 	grpcService *ColService
 
-	ipToCluster map[string]string            // key: IP, value: clustername
+	ipToService map[string]*ServiceInfo      // key: IP, value: serviceInfo
 	svcCache    map[string]*protobuf.Service // key: "cluster/namespace/name" value: *protobuf.Service
 
 	apiLogChan  chan interface{}
@@ -48,7 +54,7 @@ func init() {
 func NewColHandler() *ColHandler {
 	lh := &ColHandler{
 		grpcService: new(ColService),
-		ipToCluster: make(map[string]string),
+		ipToService: make(map[string]*ServiceInfo),
 		svcCache:    make(map[string]*protobuf.Service),
 
 		apiLogChan:  make(chan interface{}),
